@@ -140,9 +140,8 @@ struct ScoreGradientArtwork: View {
             if piece.isFavorite {
                 Image(systemName: "star.fill")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
-                    .padding(8)
-                    .background(Color.tempoBlue, in: RoundedRectangle(cornerRadius: 7))
+                    .foregroundStyle(Color.tempoOrange)
+                    .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
                     .padding(9)
             }
         }

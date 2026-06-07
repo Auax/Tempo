@@ -50,36 +50,6 @@ struct FeedbackPanel: View {
                 .padding(.vertical, 10)
                 .background(.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
 
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Tempo")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-                        Spacer()
-                        Text("\(store.tempo) BPM")
-                            .font(.headline.monospacedDigit())
-                    }
-
-                    Slider(
-                        value: Binding(
-                            get: { Double(store.tempo) },
-                            set: { store.tempo = Int($0) }
-                        ),
-                        in: 30...180,
-                        step: 2
-                    )
-                    .tint(.tempoBlue)
-
-                    HStack {
-                        Text("30")
-                        Spacer()
-                        Text("180")
-                    }
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                }
-
                 Divider()
 
                 VStack(alignment: .leading, spacing: 11) {

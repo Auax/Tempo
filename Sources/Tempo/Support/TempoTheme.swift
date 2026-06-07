@@ -28,13 +28,10 @@ enum TempoTheme {
         static let keyboardHeight: CGFloat = 148
         static let libraryFilterWidth: CGFloat = 220
         static let librarySearchMaxWidth: CGFloat = 410
-        static let libraryDisplayPickerWidth: CGFloat = 86
         static let librarySortPickerWidth: CGFloat = 200
         static let libraryScoreCardMin: CGFloat = 190
         static let libraryScoreCardMax: CGFloat = 230
         static let libraryBrowseCardMin: CGFloat = 220
-        static let libraryScoreRowArtworkWidth: CGFloat = 58
-        static let libraryScoreRowArtworkHeight: CGFloat = 72
     }
 
     enum Motion {

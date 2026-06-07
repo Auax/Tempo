@@ -74,30 +74,7 @@ struct SidebarView: View {
 
     private var expandedPracticeControls: some View {
         VStack(alignment: .leading, spacing: 18) {
-            if let piece = store.selectedPiece {
-                VStack(alignment: .leading, spacing: 9) {
-                    sectionLabel("Current Piece")
-                    Button {
-                        store.isPracticeWorkspacePresented = true
-                        store.destination = .library
-                    } label: {
-                        HStack(spacing: 11) {
-                            PieceArtwork(title: piece.title, size: 48)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(piece.title)
-                                    .font(.subheadline.weight(.semibold))
-                                    .lineLimit(1)
-                                Text(piece.composer)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            
 
             if let sections = store.selectedPiece?.sections {
                 VStack(alignment: .leading, spacing: 8) {
