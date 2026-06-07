@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Tempo}",
+            "name": "Debug Tempo",
+            "target": "Tempo",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Tempo"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Tempo}",
+            "name": "Release Tempo",
+            "target": "Tempo",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Tempo"
+        }
+    ]
+}
