@@ -18,8 +18,11 @@ INFO_PLIST="$APP_CONTENTS/Info.plist"
 cd "$ROOT_DIR"
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 
-swift build
-BIN_PATH="$(swift build --show-bin-path)"
+export CLANG_MODULE_CACHE_PATH="${CLANG_MODULE_CACHE_PATH:-/tmp/tempo-clang-cache}"
+export SWIFTPM_MODULECACHE_OVERRIDE="${SWIFTPM_MODULECACHE_OVERRIDE:-/tmp/tempo-swiftpm-module-cache}"
+
+swift build --disable-sandbox
+BIN_PATH="$(swift build --disable-sandbox --show-bin-path)"
 BUILD_BINARY="$BIN_PATH/$APP_NAME"
 
 rm -rf "$APP_BUNDLE"
@@ -27,7 +30,16 @@ mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
-find "$BIN_PATH" -maxdepth 1 -name '*.bundle' -exec cp -R {} "$APP_RESOURCES/" \;
+for bundle_pattern in \
+  "$BIN_PATH"/VerovioToolkit_*.bundle \
+  "$BIN_PATH"/ZIPFoundation_*.bundle
+do
+  for bundle in $bundle_pattern; do
+    if [[ -d "$bundle" ]]; then
+      cp -R "$bundle" "$APP_RESOURCES/"
+    fi
+  done
+done
 
 cat >"$INFO_PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -59,6 +71,8 @@ open_app() {
 }
 
 case "$MODE" in
+  --package|package)
+    ;;
   run)
     open_app
     ;;
@@ -79,7 +93,7 @@ case "$MODE" in
     pgrep -x "$APP_NAME" >/dev/null
     ;;
   *)
-    echo "usage: $0 [run|--debug|--logs|--telemetry|--verify]" >&2
+    echo "usage: $0 [run|--package|--debug|--logs|--telemetry|--verify]" >&2
     exit 2
     ;;
 esac

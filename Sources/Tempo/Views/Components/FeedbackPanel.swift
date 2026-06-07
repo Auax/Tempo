@@ -69,7 +69,7 @@ struct FeedbackPanel: View {
                         in: 30...180,
                         step: 2
                     )
-                    .tint(.tempoPurple)
+                    .tint(.tempoBlue)
 
                     HStack {
                         Text("30")
@@ -112,9 +112,7 @@ struct FeedbackPanel: View {
                     Label("Review Session", systemImage: "chart.bar.doc.horizontal")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.tempoPurple)
-                .controlSize(.large)
+                .tempoProminentButton()
                 .disabled(!store.hasSessionData)
 
                 Button {
@@ -123,7 +121,7 @@ struct FeedbackPanel: View {
                     Label("Reset Session", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .tempoBorderedButton()
             }
             .padding(18)
         }
@@ -148,7 +146,7 @@ private struct AccuracyRing: View {
                 .trim(from: 0, to: value)
                 .stroke(
                     AngularGradient(
-                        colors: [.tempoPurple, .tempoGreen],
+                        colors: [.tempoBlue, .tempoGreen],
                         center: .center,
                         startAngle: .degrees(-90),
                         endAngle: .degrees(270)

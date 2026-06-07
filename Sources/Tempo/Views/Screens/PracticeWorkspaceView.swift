@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PracticeWorkspaceView: View {
     @Bindable var store: TempoStore
+    @AppStorage("tempo.visualKeyboard") private var visualKeyboard = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,6 +16,7 @@ struct PracticeWorkspaceView: View {
                         currentMeasure: store.currentMeasure,
                         zoom: store.scoreZoom,
                         expectedNotes: store.expectedScoreNotes,
+                        playingNotes: store.nowPlayingScoreNotes,
                         feedback: store.activeScoreFeedback
                     )
                     .frame(
@@ -34,10 +36,12 @@ struct PracticeWorkspaceView: View {
 
             TransportControls(store: store)
 
-            PianoKeyboardView(store: store)
-                .padding(.horizontal, store.focusMode ? 12 : 20)
-                .padding(.vertical, 10)
-                .background(Color.tempoPanel)
+            if visualKeyboard {
+                PianoKeyboardView(store: store)
+                    .padding(.horizontal, store.focusMode ? 12 : 20)
+                    .padding(.vertical, 10)
+                    .background(Color.tempoPanel)
+            }
 
             if !store.focusMode {
                 feedbackLegend

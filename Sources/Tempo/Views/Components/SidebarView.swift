@@ -129,7 +129,7 @@ struct SidebarView: View {
                             .frame(height: 42)
                             .background(
                                 store.selectedSectionID == section.id
-                                    ? Color.tempoPurple.opacity(0.14)
+                                    ? Color.tempoBlue.opacity(0.14)
                                     : .clear,
                                 in: RoundedRectangle(cornerRadius: 8)
                             )
@@ -148,7 +148,7 @@ struct SidebarView: View {
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.small)
-                    .tint(.tempoPurple)
+                    .tint(.tempoBlue)
             }
         }
         .padding(.horizontal, 14)
@@ -177,7 +177,7 @@ struct SidebarView: View {
             } label: {
                 Image(systemName: store.isLoopEnabled ? "repeat.circle.fill" : "repeat.circle")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(store.isLoopEnabled ? Color.tempoPurple : .secondary)
+                    .foregroundStyle(store.isLoopEnabled ? Color.tempoBlue : .secondary)
             }
             .buttonStyle(.plain)
             .help("Toggle Loop")
@@ -187,7 +187,7 @@ struct SidebarView: View {
     private var connectionStatus: some View {
         Button {
             store.midiService.refreshSources()
-            store.showingPairing = true
+            store.showingMIDIConnection = true
         } label: {
             HStack(spacing: 10) {
                 Circle()
@@ -237,11 +237,11 @@ private struct SidebarItem: View {
                     Spacer(minLength: 0)
                 }
             }
-            .foregroundStyle(selected ? Color.tempoPurple : .primary)
+            .foregroundStyle(selected ? Color.tempoBlue : .primary)
             .padding(.horizontal, compact ? 8 : 10)
             .frame(maxWidth: .infinity, minHeight: 38)
             .background(
-                selected ? Color.tempoPurple.opacity(0.13) : .clear,
+                selected ? Color.tempoBlue.opacity(0.13) : .clear,
                 in: RoundedRectangle(cornerRadius: 9)
             )
             .contentShape(Rectangle())
@@ -261,7 +261,7 @@ struct PieceArtwork: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.tempoPurple.opacity(0.82),
+                            Color.tempoBlue.opacity(0.82),
                             Color(red: 0.16, green: 0.26, blue: 0.45)
                         ],
                         startPoint: .topLeading,

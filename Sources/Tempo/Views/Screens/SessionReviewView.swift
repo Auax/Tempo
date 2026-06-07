@@ -17,6 +17,7 @@ struct SessionReviewView: View {
                 Button("Done") {
                     dismiss()
                 }
+                .tempoBorderedButton()
             }
 
             HStack(spacing: 14) {
@@ -30,7 +31,7 @@ struct SessionReviewView: View {
                 ReviewMetric(
                     value: TempoFormatters.duration(store.metrics.practicedSeconds),
                     label: "Practice time",
-                    color: .tempoPurple
+                    color: .tempoBlue
                 )
                 ReviewMetric(
                     value: "\(store.metrics.longestStreak)",

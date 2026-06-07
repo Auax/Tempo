@@ -9,7 +9,7 @@ struct TempoLogo: View {
                 RoundedRectangle(cornerRadius: 9)
                     .fill(
                         LinearGradient(
-                            colors: [.tempoPurpleSoft, .tempoPurple],
+                            colors: [.tempoBlueSoft, .tempoBlue],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -19,7 +19,7 @@ struct TempoLogo: View {
                     .foregroundStyle(.white)
             }
             .frame(width: 32, height: 32)
-            .shadow(color: .tempoPurple.opacity(0.24), radius: 8, y: 4)
+            .shadow(color: .tempoBlue.opacity(0.24), radius: 8, y: 4)
 
             if !compact {
                 Text("Tempo")

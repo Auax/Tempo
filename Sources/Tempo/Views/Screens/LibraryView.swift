@@ -2,61 +2,642 @@ import SwiftUI
 
 struct LibraryView: View {
     @Bindable var store: TempoStore
+    @State private var displayMode = LibraryDisplayMode.grid
+    @State private var openFolderID: ScoreFolder.ID?
+    @State private var openComposer: String?
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(store.destination.title)
-                        .font(.largeTitle.weight(.semibold))
-                    Text("\(store.filteredPieces.count) scores ready to practice")
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                TextField("Search music", text: $store.searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 230)
-
-                Button {
-                    store.showingImporter = true
-                } label: {
-                    Label("Import", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.tempoPurple)
-            }
-            .padding(26)
-
+        VStack(spacing: 20) {
+            libraryHeader
+            sectionBar
             Divider()
 
-            if store.filteredPieces.isEmpty {
-                ContentUnavailableView {
-                    Label("No Scores Found", systemImage: "music.note.list")
-                } description: {
-                    Text("Import MusicXML, MuseScore, or MIDI, or adjust your search.")
-                } actions: {
-                    Button("Import Score") {
-                        store.showingImporter = true
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.tempoPurple)
-                }
-            } else {
-                ScrollView {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 250), spacing: 18)],
-                        spacing: 18
-                    ) {
-                        ForEach(store.filteredPieces) { piece in
-                            PieceCard(piece: piece, store: store)
-                        }
-                    }
-                    .padding(26)
-                }
+            switch store.librarySection {
+            case .allScores:
+                allScoresView
+            case .folders:
+                foldersView
+            case .composers:
+                composersView
             }
         }
         .background(Color.primary.opacity(0.025))
+    }
+
+    private var libraryHeader: some View {
+        HStack(spacing: TempoTheme.Spacing.xLarge) {
+            VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                Text("Library")
+                    .font(.largeTitle.weight(.semibold))
+                Text("Manage and organize your scores")
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button {
+                store.showingImporter = true
+            } label: {
+                Label("Import Score", systemImage: "square.and.arrow.down")
+            }
+            .tempoProminentButton()
+
+      
+        }
+        .padding(.horizontal, TempoTheme.Spacing.xLarge)
+        .padding(.top, TempoTheme.Spacing.xLarge)
+        .padding(.bottom, TempoTheme.Spacing.large)
+    }
+
+    private var sectionBar: some View {
+        HStack(alignment: .bottom, spacing: TempoTheme.Spacing.xLarge) {
+            HStack(alignment: .bottom, spacing: TempoTheme.Spacing.xLarge) {
+                ForEach(LibrarySection.allCases) { section in
+                    Button {
+                        withAnimation(TempoTheme.Motion.quick) {
+                            store.librarySection = section
+                            openFolderID = nil
+                            openComposer = nil
+                        }
+                    } label: {
+                        HStack(spacing: TempoTheme.Spacing.small) {
+                            Text(section.rawValue)
+                            Text(sectionCount(section), format: .number)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, TempoTheme.Spacing.small)
+                                .padding(.vertical, TempoTheme.Spacing.xSmall)
+                                .background(.primary.opacity(0.07), in: Capsule())
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.bottom, TempoTheme.Spacing.medium + 2)
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(
+                                    store.librarySection == section
+                                        ? Color.tempoBlue
+                                        : .clear
+                                )
+                                .frame(height: 2)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(
+                        store.librarySection == section ? Color.tempoBlue : .primary
+                    )
+                }
+            }
+            .fixedSize(horizontal: true, vertical: false)
+
+            Spacer(minLength: 0)
+
+            if store.librarySection == .folders, openFolderID == nil {
+                Button {
+                    store.showingNewFolder = true
+                } label: {
+                    Label("New Folder", systemImage: "folder.badge.plus")
+                }
+                .tempoBorderedButton()
+            } else if showsBrowseControls {
+                browseControls
+            }
+        }
+        .padding(.horizontal, TempoTheme.Spacing.xxLarge)
+    }
+
+    private var showsBrowseControls: Bool {
+        store.librarySection == .allScores
+    }
+
+    private var browseControls: some View {
+        // HStack(spacing: TempoTheme.Spacing.medium) {
+        //     Picker("Display", selection: $displayMode) {
+        //         Image(systemName: "square.grid.2x2").tag(LibraryDisplayMode.grid)
+        //         Image(systemName: "list.bullet").tag(LibraryDisplayMode.list)
+        //     }
+        //     .pickerStyle(.segmented)
+        //     .labelsHidden()
+        //     .frame(
+        //         width: TempoTheme.Layout.libraryDisplayPickerWidth,
+        //         height: TempoTheme.Layout.controlHeight
+        //     )
+
+        // }
+
+        HStack(spacing: TempoTheme.Spacing.medium) {
+            TempoSearchField(
+                        prompt: "Search by title, composer, genre, or difficulty",
+                        text: $store.searchText
+            )
+            .frame(maxWidth: TempoTheme.Layout.librarySearchMaxWidth)
+
+            LibrarySortPicker(selection: $store.librarySort)
+        }
+    }
+
+    private var allScoresView: some View {
+        HStack(spacing: 0) {
+            filters
+                .frame(width: TempoTheme.Layout.libraryFilterWidth)
+            Divider()
+            scoreResults(for: store.filteredPieces)
+        }
+    }
+
+    private var filters: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: TempoTheme.Spacing.xLarge) {
+                filterSection("Library") {
+                    ForEach(LibraryQuickFilter.allCases) { filter in
+                        Button {
+                            store.libraryQuickFilter = filter
+                        } label: {
+                            HStack {
+                                Image(systemName: filter.symbol)
+                                    .frame(width: TempoTheme.Spacing.xLarge)
+                                Text(filter.rawValue)
+                                Spacer()
+                                Text(quickFilterCount(filter), format: .number)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .font(.headline.weight(.medium))
+                            .padding(.horizontal, TempoTheme.Spacing.medium)
+                            .frame(height: TempoTheme.Layout.controlHeight)
+                            .background(
+                                store.libraryQuickFilter == filter
+                                    ? Color.tempoBlue.opacity(0.13)
+                                    : .clear,
+                                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.small)
+                            )
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Divider()
+
+                filterSection("Difficulty") {
+                    ForEach(PieceDifficulty.allCases) { difficulty in
+                        filterToggle(
+                            difficulty.rawValue,
+                            count: store.pieces.filter {
+                                $0.difficulty == difficulty.rawValue
+                            }.count,
+                            isOn: store.selectedDifficulties.contains(difficulty.rawValue)
+                        ) {
+                            toggle(difficulty.rawValue, in: &store.selectedDifficulties)
+                        }
+                    }
+                }
+
+                Divider()
+
+                filterSection("Genres") {
+                    ForEach(PieceGenre.allCases) { genre in
+                        filterToggle(
+                            genre.rawValue,
+                            count: store.pieces.filter { $0.genre == genre.rawValue }.count,
+                            isOn: store.selectedGenres.contains(genre.rawValue)
+                        ) {
+                            toggle(genre.rawValue, in: &store.selectedGenres)
+                        }
+                    }
+                }
+
+                Button {
+                    store.clearLibraryFilters()
+                } label: {
+                    Text("Clear Filters")
+                        .frame(maxWidth: .infinity)
+                }
+                .tempoBorderedButton()
+                .frame(maxWidth: .infinity)
+                .disabled(!hasActiveFilters)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(TempoTheme.Spacing.xLarge)
+        }
+    }
+
+    @ViewBuilder
+    private func scoreResults(for pieces: [Piece]) -> some View {
+        if pieces.isEmpty {
+            ContentUnavailableView {
+                Label("No Scores Found", systemImage: "music.note.list")
+            } description: {
+                Text("Import a MusicXML score or clear the current filters.")
+            } actions: {
+                Button("Import Score") {
+                    store.showingImporter = true
+                }
+                .tempoProminentButton()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ScrollView {
+                libraryScoresGrid(pieces)
+            }
+            .padding(TempoTheme.Spacing.xLarge)
+        }
+    }
+
+    @ViewBuilder
+    private func libraryScoresGrid(_ pieces: [Piece]) -> some View {
+        if displayMode == .grid {
+            LazyVGrid(
+                columns: [
+                    GridItem(
+                        .adaptive(
+                            minimum: TempoTheme.Layout.libraryScoreCardMin,
+                            maximum: TempoTheme.Layout.libraryScoreCardMax
+                        ),
+                        spacing: TempoTheme.Spacing.large
+                    )
+                ],
+                spacing: TempoTheme.Spacing.large
+            ) {
+                ForEach(pieces) { piece in
+                    LibraryScoreCard(piece: piece, store: store)
+                }
+            }
+        } else {
+            LazyVStack(spacing: TempoTheme.Spacing.medium) {
+                ForEach(pieces) { piece in
+                    LibraryScoreRow(piece: piece, store: store)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var foldersView: some View {
+        if let folderID = openFolderID,
+           let folder = store.folders.first(where: { $0.id == folderID }) {
+            browseDetail(
+                title: folder.name,
+                pieces: store.pieces(in: folder),
+                emptyTitle: "No Scores in Folder",
+                emptyDescription: "Move scores into this folder from the score menu."
+            ) {
+                openFolderID = nil
+            }
+        } else if store.folders.isEmpty {
+            ContentUnavailableView {
+                Label("No Folders Yet", systemImage: "folder")
+            } description: {
+                Text("Create a folder to organize your scores.")
+            } actions: {
+                Button("New Folder") {
+                    store.showingNewFolder = true
+                }
+                .tempoProminentButton()
+            }
+        } else {
+            ScrollView {
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: TempoTheme.Layout.libraryBrowseCardMin),
+                            spacing: TempoTheme.Spacing.large
+                        )
+                    ],
+                    spacing: TempoTheme.Spacing.large
+                ) {
+                    ForEach(filteredFolders) { folder in
+                        Button {
+                            withAnimation(TempoTheme.Motion.quick) {
+                                openFolderID = folder.id
+                            }
+                        } label: {
+                            HStack(spacing: TempoTheme.Spacing.medium) {
+                                Image(systemName: "folder.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.tempoBlue)
+                                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                                    Text(folder.name)
+                                        .font(.headline)
+                                        .lineLimit(1)
+                                    Text("\(store.pieceCount(in: folder)) scores")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .tempoCard()
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(TempoTheme.Spacing.xxLarge)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var composersView: some View {
+        if let composer = openComposer {
+            browseDetail(
+                title: composer,
+                pieces: store.pieces(by: composer),
+                emptyTitle: "No Scores Found",
+                emptyDescription: "This composer has no scores in your library."
+            ) {
+                openComposer = nil
+            }
+        } else if filteredComposers.isEmpty {
+            ContentUnavailableView(
+                "No Composers Found",
+                systemImage: "person.2",
+                description: Text("Composer names appear here after importing scores.")
+            )
+        } else {
+            ScrollView {
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: TempoTheme.Layout.libraryBrowseCardMin),
+                            spacing: TempoTheme.Spacing.large
+                        )
+                    ],
+                    spacing: TempoTheme.Spacing.large
+                ) {
+                    ForEach(filteredComposers, id: \.self) { composer in
+                        Button {
+                            withAnimation(TempoTheme.Motion.quick) {
+                                openComposer = composer
+                            }
+                        } label: {
+                            HStack(spacing: TempoTheme.Spacing.medium) {
+                                Image(systemName: "person.crop.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.tempoBlue)
+                                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                                    Text(composer)
+                                        .font(.headline)
+                                        .lineLimit(1)
+                                    Text("\(store.pieceCount(by: composer)) scores")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .tempoCard()
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(TempoTheme.Spacing.xxLarge)
+            }
+        }
+    }
+
+    private func browseDetail(
+        title: String,
+        pieces: [Piece],
+        emptyTitle: String,
+        emptyDescription: String,
+        onBack: @escaping () -> Void
+    ) -> some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: TempoTheme.Spacing.small) {
+                Button(action: onBack) {
+                    Label("Back", systemImage: "chevron.left")
+                }
+                .buttonStyle(.plain)
+
+                Text(title)
+                    .font(.title2.weight(.semibold))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, TempoTheme.Spacing.xxLarge)
+            .padding(.vertical, TempoTheme.Spacing.large)
+
+            if pieces.isEmpty {
+                ContentUnavailableView {
+                    Label(emptyTitle, systemImage: "music.note.list")
+                } description: {
+                    Text(emptyDescription)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    libraryScoresGrid(pieces)
+                }
+                .padding(TempoTheme.Spacing.xLarge)
+            }
+        }
+    }
+
+    private var filteredFolders: [ScoreFolder] {
+        guard !store.searchText.isEmpty else { return store.folders }
+        return store.folders.filter {
+            $0.name.localizedCaseInsensitiveContains(store.searchText)
+        }
+    }
+
+    private var filteredComposers: [String] {
+        guard !store.searchText.isEmpty else { return store.composers }
+        return store.composers.filter {
+            $0.localizedCaseInsensitiveContains(store.searchText)
+        }
+    }
+
+    private var hasActiveFilters: Bool {
+        store.libraryQuickFilter != .all
+            || !store.selectedDifficulties.isEmpty
+            || !store.selectedGenres.isEmpty
+    }
+
+    private func sectionCount(_ section: LibrarySection) -> Int {
+        switch section {
+        case .allScores: store.pieces.count
+        case .folders: store.folders.count
+        case .composers: store.composers.count
+        }
+    }
+
+    private func quickFilterCount(_ filter: LibraryQuickFilter) -> Int {
+        switch filter {
+        case .all:
+            store.pieces.count
+        case .recent:
+            store.pieces.filter {
+                Calendar.current.dateComponents(
+                    [.day],
+                    from: $0.lastPracticed,
+                    to: .now
+                ).day ?? 0 <= 30
+            }.count
+        case .favorites:
+            store.pieces.filter(\.isFavorite).count
+        }
+    }
+
+    private func filterSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            content()
+        }
+    }
+
+    private func filterToggle(
+        _ title: String,
+        count: Int,
+        isOn: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: isOn ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isOn ? Color.tempoBlue : .secondary)
+                Text(title)
+                Spacer()
+                Text(count, format: .number)
+                    .foregroundStyle(.secondary)
+            }
+            .font(.headline.weight(.medium))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func toggle(_ value: String, in set: inout Set<String>) {
+        if set.contains(value) {
+            set.remove(value)
+        } else {
+            set.insert(value)
+        }
+    }
+}
+
+private enum LibraryDisplayMode: Hashable {
+    case grid
+    case list
+}
+
+private struct LibraryPieceMenu: View {
+    let piece: Piece
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        Menu {
+            Button {
+                store.toggleFavorite(piece.id)
+            } label: {
+                Label(
+                    piece.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                    systemImage: piece.isFavorite ? "star.slash" : "star"
+                )
+            }
+
+            if !store.folders.isEmpty {
+                Menu("Move to Folder") {
+                    if piece.folderID != nil {
+                        Button("Remove from Folder") {
+                            store.movePiece(piece.id, to: nil)
+                        }
+                    }
+                    ForEach(store.folders) { folder in
+                        Button(folder.name) {
+                            store.movePiece(piece.id, to: folder.id)
+                        }
+                        .disabled(piece.folderID == folder.id)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .foregroundStyle(.secondary)
+                .frame(width: TempoTheme.Spacing.xLarge, height: TempoTheme.Spacing.xLarge)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+    }
+}
+
+private struct LibraryScoreCard: View {
+    let piece: Piece
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
+            Button {
+                store.selectPiece(piece, startPractice: true)
+            } label: {
+                ScoreGradientArtwork(piece: piece)
+            }
+            .buttonStyle(.plain)
+
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                    Text(piece.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: TempoTheme.Spacing.xSmall)
+                LibraryPieceMenu(piece: piece, store: store)
+            }
+
+            Text("\(piece.difficulty)  •  \(piece.genre)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(TempoTheme.Spacing.large)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
+        .overlay {
+            RoundedRectangle(cornerRadius: TempoTheme.Radius.medium)
+                .stroke(.primary.opacity(0.08))
+        }
+    }
+}
+
+private struct LibraryScoreRow: View {
+    let piece: Piece
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        Button {
+            store.selectPiece(piece, startPractice: true)
+        } label: {
+            HStack(spacing: TempoTheme.Spacing.medium) {
+                ScoreGradientArtwork(piece: piece)
+                    .frame(
+                        width: TempoTheme.Layout.libraryScoreRowArtworkWidth,
+                        height: TempoTheme.Layout.libraryScoreRowArtworkHeight
+                    )
+                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                    Text(piece.title)
+                        .font(.headline)
+                    Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(piece.difficulty)
+                Text(piece.genre)
+                LibraryPieceMenu(piece: piece, store: store)
+            }
+            .padding(TempoTheme.Spacing.medium)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

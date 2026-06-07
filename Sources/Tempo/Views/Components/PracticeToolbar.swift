@@ -33,7 +33,7 @@ struct PracticeToolbar: View {
 
             HStack(spacing: 5) {
                 Image(systemName: "metronome")
-                    .foregroundStyle(store.isMetronomeEnabled ? Color.tempoPurple : .secondary)
+                    .foregroundStyle(store.isMetronomeEnabled ? Color.tempoBlue : .secondary)
                 Text("\(store.tempo)")
                     .font(.system(.body, design: .rounded).monospacedDigit())
                 Stepper("", value: $store.tempo, in: 30...220, step: 2)
@@ -41,7 +41,7 @@ struct PracticeToolbar: View {
                     .controlSize(.small)
             }
             .padding(.horizontal, 10)
-            .frame(height: 32)
+            .frame(height: TempoTheme.Layout.controlHeight)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9))
 
             Button {

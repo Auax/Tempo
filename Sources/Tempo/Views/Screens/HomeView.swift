@@ -19,9 +19,7 @@ struct HomeView: View {
                     } label: {
                         Label("Import Score", systemImage: "square.and.arrow.down")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.tempoPurple)
-                    .controlSize(.large)
+                    .tempoProminentButton()
                 }
 
                 if store.pieces.isEmpty {
@@ -33,8 +31,7 @@ struct HomeView: View {
                         Button("Import Score") {
                             store.showingImporter = true
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.tempoPurple)
+                        .tempoProminentButton()
                     }
                     .frame(maxWidth: .infinity, minHeight: 360)
                 } else {
@@ -75,7 +72,7 @@ private struct ContinuePracticeCard: View {
                 Text("CONTINUE PRACTICING")
                     .font(.caption.weight(.semibold))
                     .tracking(0.8)
-                    .foregroundStyle(Color.tempoPurple)
+                    .foregroundStyle(Color.tempoBlue)
                 Text(piece.title)
                     .font(.title.weight(.semibold))
                 Text("\(piece.composer) • \(piece.collection)")
@@ -94,16 +91,14 @@ private struct ContinuePracticeCard: View {
                 Label("Continue", systemImage: "play.fill")
                     .frame(minWidth: 92)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.tempoPurple)
-            .controlSize(.large)
+            .tempoProminentButton()
         }
         .padding(24)
         .background(
             LinearGradient(
                 colors: [
-                    Color.tempoPurple.opacity(0.14),
-                    Color.tempoPurple.opacity(0.035)
+                    Color.tempoBlue.opacity(0.14),
+                    Color.tempoBlue.opacity(0.035)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -112,7 +107,7 @@ private struct ContinuePracticeCard: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: TempoTheme.Radius.xLarge)
-                .stroke(Color.tempoPurple.opacity(0.18))
+                .stroke(Color.tempoBlue.opacity(0.18))
         }
     }
 }

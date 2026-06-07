@@ -17,6 +17,7 @@ struct PairingView: View {
                 Button("Done") {
                     dismiss()
                 }
+                .tempoBorderedButton()
             }
 
             HStack(spacing: 28) {
@@ -80,7 +81,7 @@ private struct PairingCodeView: View {
                     )
                     context.fill(
                         Path(roundedRect: rect, cornerRadius: cell * 0.16),
-                        with: .color(index % 7 == 0 ? .tempoPurple : .black)
+                        with: .color(index % 7 == 0 ? .tempoBlue : .black)
                     )
                 }
             }

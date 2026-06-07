@@ -5,24 +5,19 @@ struct TransportControls: View {
 
     var body: some View {
         HStack {
-            Menu {
-                Picker("Hands", selection: $store.handSelection) {
-                    ForEach(HandSelection.allCases) { selection in
-                        Text(selection.rawValue).tag(selection)
-                    }
-                }
-            } label: {
-                Label(store.handSelection.rawValue, systemImage: "hands.and.sparkles")
-                    .font(.caption)
-            }
-            .menuStyle(.button)
-            .frame(width: 132, alignment: .leading)
+            HandToggleGroup(selection: $store.handSelection)
+                .frame(width: 132, alignment: .leading)
 
             Spacer()
 
             HStack(spacing: 22) {
+                Button(action: store.goToStart) {
+                    Image(systemName: "backward.end.alt.fill")
+                }
+                .help("Back to Start")
+
                 Button(action: store.skipBackward) {
-                    Image(systemName: "backward.end.fill")
+                    Image(systemName: "backward.fill")
                 }
                 .help("Previous Measure")
 
@@ -33,19 +28,19 @@ struct TransportControls: View {
                         .frame(width: 44, height: 44)
                         .background(
                             LinearGradient(
-                                colors: [.tempoPurpleSoft, .tempoPurple],
+                                colors: [.tempoBlueSoft, .tempoBlue],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
                             in: Circle()
                         )
-                        .shadow(color: .tempoPurple.opacity(0.28), radius: 8, y: 4)
+                        .shadow(color: .tempoBlue.opacity(0.28), radius: 8, y: 4)
                 }
                 .buttonStyle(.plain)
                 .help(store.isPlaying ? "Pause" : "Play")
 
                 Button(action: store.skipForward) {
-                    Image(systemName: "forward.end.fill")
+                    Image(systemName: "forward.fill")
                 }
                 .help("Next Measure")
             }
@@ -78,6 +73,89 @@ struct TransportControls: View {
         .background(.thinMaterial)
         .overlay(alignment: .top) {
             Divider()
+        }
+    }
+}
+
+private struct HandToggleGroup: View {
+    @Binding var selection: HandSelection
+
+    private var isLeftSelected: Bool {
+        selection == .left || selection == .both
+    }
+
+    private var isRightSelected: Bool {
+        selection == .right || selection == .both
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            handButton(
+                label: "L",
+                isSelected: isLeftSelected,
+                activeColor: .tempoLeftHand,
+                help: "Left hand"
+            ) {
+                toggleLeft()
+            }
+
+            handButton(
+                label: "R",
+                isSelected: isRightSelected,
+                activeColor: .tempoRightHand,
+                help: "Right hand"
+            ) {
+                toggleRight()
+            }
+        }
+    }
+
+    private func handButton(
+        label: String,
+        isSelected: Bool,
+        activeColor: Color,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+                .frame(width: 28, height: 28)
+                .foregroundStyle(isSelected ? Color.white : .secondary)
+                .background(
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(isSelected ? activeColor : Color.primary.opacity(0.06))
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 7)
+                        .stroke(isSelected ? activeColor.opacity(0.4) : Color.primary.opacity(0.08))
+                }
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .accessibilityLabel(help)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func toggleLeft() {
+        switch selection {
+        case .both:
+            selection = .right
+        case .left:
+            break
+        case .right:
+            selection = .both
+        }
+    }
+
+    private func toggleRight() {
+        switch selection {
+        case .both:
+            selection = .left
+        case .right:
+            break
+        case .left:
+            selection = .both
         }
     }
 }

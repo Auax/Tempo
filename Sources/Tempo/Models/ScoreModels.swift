@@ -46,3 +46,32 @@ struct ParsedScore: Sendable {
         measureStartBeats[measure] ?? 0
     }
 }
+
+enum ScoreTimeline {
+    static let beatEqualityEpsilon = 0.001
+
+    static func events(atStartBeat beat: Double, in events: [ScoreNoteEvent]) -> [ScoreNoteEvent] {
+        events.filter { abs($0.startBeat - beat) < beatEqualityEpsilon }
+    }
+
+    static func activeStartBeat(at beat: Double, in events: [ScoreNoteEvent]) -> Double? {
+        events
+            .filter { $0.startBeat <= beat + beatEqualityEpsilon }
+            .map(\.startBeat)
+            .max()
+    }
+
+    static func nextStartBeat(after beat: Double, in events: [ScoreNoteEvent]) -> Double? {
+        events
+            .filter { $0.startBeat > beat + beatEqualityEpsilon }
+            .map(\.startBeat)
+            .min()
+    }
+
+    static func firstStartBeat(from beat: Double, in events: [ScoreNoteEvent]) -> Double? {
+        events
+            .filter { $0.startBeat >= beat - beatEqualityEpsilon }
+            .map(\.startBeat)
+            .min()
+    }
+}

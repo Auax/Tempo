@@ -19,7 +19,10 @@ final class TempoStore {
     var currentBeat = 0.0
     var currentMeasure = 1
     var showingImporter = false
+    var pendingImport: PendingScoreImport?
+    var showingNewFolder = false
     var showingPairing = false
+    var showingMIDIConnection = false
     var showingSessionReview = false
 
     var sidebarCollapsed: Bool {
@@ -33,21 +36,34 @@ final class TempoStore {
     var activeScoreFeedback: [String: NoteFeedback] = [:]
     var metrics = SessionMetrics()
     var pieces: [Piece]
+    var folders: [ScoreFolder]
     var searchText = ""
+    var librarySection: LibrarySection = .allScores
+    var libraryQuickFilter: LibraryQuickFilter = .all
+    var librarySort: LibrarySort = .lastOpened
+    var selectedDifficulties: Set<String> = []
+    var selectedGenres: Set<String> = []
     var parsedScore: ParsedScore?
     var scoreError: String?
 
     let midiService: MIDIService
 
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private let playbackService = PianoPlaybackService()
+    @ObservationIgnored private lazy var playbackService = PianoPlaybackService()
     @ObservationIgnored private var beatAccumulator = 0.0
+    @ObservationIgnored private var targetBeat = 0.0
+    @ObservationIgnored private var hitNotesForTarget: Set<Int> = []
+    @ObservationIgnored private var chordGraceStartedAt: Date?
+    @ObservationIgnored private var lastTickAt: Date?
+
+    private static let chordGracePeriod: TimeInterval = 0.45
 
     init(defaults: UserDefaults = .standard, midiService: MIDIService? = nil) {
         self.defaults = defaults
         self.sidebarCollapsed = defaults.bool(forKey: Keys.sidebarCollapsed)
         self.inspectorVisible = defaults.object(forKey: Keys.inspectorVisible) as? Bool ?? true
         self.pieces = Self.loadPieces(defaults: defaults)
+        self.folders = Self.loadFolders(defaults: defaults)
         self.midiService = midiService ?? MIDIService()
 
         selectedPieceID = pieces.first?.id
@@ -57,6 +73,9 @@ final class TempoStore {
 
         self.midiService.onNote = { [weak self] note, velocity in
             self?.receive(note: note, velocity: velocity)
+        }
+        self.midiService.onNoteOff = { [weak self] note in
+            self?.release(note: note)
         }
     }
 
@@ -69,36 +88,113 @@ final class TempoStore {
     }
 
     var filteredPieces: [Piece] {
-        let destinationFiltered: [Piece]
-        switch destination {
-        case .favorites:
-            destinationFiltered = pieces.filter(\.isFavorite)
+        var result = pieces
+
+        switch libraryQuickFilter {
+        case .all:
+            break
         case .recent:
-            destinationFiltered = pieces.sorted { $0.lastPracticed > $1.lastPracticed }
-        default:
-            destinationFiltered = pieces
+            result = result.filter { Calendar.current.dateComponents(
+                [.day],
+                from: $0.lastPracticed,
+                to: .now
+            ).day ?? 0 <= 30 }
+        case .favorites:
+            result = result.filter(\.isFavorite)
         }
 
-        guard !searchText.isEmpty else { return destinationFiltered }
-        return destinationFiltered.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText)
-                || $0.composer.localizedCaseInsensitiveContains(searchText)
+        if !selectedDifficulties.isEmpty {
+            result = result.filter { selectedDifficulties.contains($0.difficulty) }
         }
+        if !selectedGenres.isEmpty {
+            result = result.filter { selectedGenres.contains($0.genre) }
+        }
+
+        if !searchText.isEmpty {
+            result = result.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText)
+                    || $0.composer.localizedCaseInsensitiveContains(searchText)
+                    || $0.genre.localizedCaseInsensitiveContains(searchText)
+                    || $0.difficulty.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        return sortedPieces(result)
+    }
+
+    func sortedPieces(_ pieces: [Piece]) -> [Piece] {
+        switch librarySort {
+        case .lastOpened:
+            pieces.sorted { $0.lastPracticed > $1.lastPracticed }
+        case .recentlyAdded:
+            pieces.sorted { $0.addedAt > $1.addedAt }
+        case .title:
+            pieces.sorted {
+                $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            }
+        case .composer:
+            pieces.sorted {
+                let comparison = $0.composer.localizedCaseInsensitiveCompare($1.composer)
+                return comparison == .orderedSame
+                    ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+                    : comparison == .orderedAscending
+            }
+        }
+    }
+
+    func pieces(in folder: ScoreFolder) -> [Piece] {
+        sortedPieces(pieces.filter { $0.folderID == folder.id })
+    }
+
+    func pieces(by composer: String) -> [Piece] {
+        sortedPieces(pieces.filter {
+            $0.composer.localizedCaseInsensitiveCompare(composer) == .orderedSame
+        })
+    }
+
+    var composers: [String] {
+        Array(Set(pieces.map(\.composer).filter { !$0.isEmpty }))
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    func composerSuggestions(for query: String) -> [String] {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return Array(composers.prefix(5))
+        }
+        return composers.filter {
+            $0.localizedCaseInsensitiveContains(query)
+        }
+        .prefix(5)
+        .map { $0 }
+    }
+
+    func pieceCount(in folder: ScoreFolder) -> Int {
+        pieces.filter { $0.folderID == folder.id }.count
+    }
+
+    func pieceCount(by composer: String) -> Int {
+        pieces.filter {
+            $0.composer.localizedCaseInsensitiveCompare(composer) == .orderedSame
+        }.count
     }
 
     var expectedEvents: [ScoreNoteEvent] {
         guard let parsedScore else { return [] }
         let selectable = parsedScore.events.filter(matchesSelectedHand)
-        let active = selectable.filter {
-            $0.startBeat <= currentBeat + 0.04 && $0.endBeat > currentBeat - 0.04
+        guard !selectable.isEmpty else { return [] }
+
+        let positionBeat: Double
+        switch practiceMode {
+        case .guided where !isPlaying:
+            positionBeat = targetBeat
+        case .guided, .section, .performance:
+            guard let activeStart = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectable) else {
+                return []
+            }
+            positionBeat = activeStart
         }
-        if !active.isEmpty {
-            return active
-        }
-        guard let nextBeat = selectable.first(where: { $0.startBeat >= currentBeat })?.startBeat else {
-            return []
-        }
-        return selectable.filter { abs($0.startBeat - nextBeat) < 0.001 }
+
+        return ScoreTimeline.events(atStartBeat: positionBeat, in: selectable)
     }
 
     var expectedNotesByHand: [Int: PianoHand] {
@@ -112,6 +208,20 @@ final class TempoStore {
         Dictionary(uniqueKeysWithValues: expectedEvents.map { ($0.id, $0.hand) })
     }
 
+    var nowPlayingScoreNotes: [String: PianoHand] {
+        guard isPlaying, let parsedScore else { return [:] }
+        let epsilon = ScoreTimeline.beatEqualityEpsilon
+        let sounding = parsedScore.events.filter {
+            matchesSelectedHand($0)
+                && $0.startBeat <= currentBeat + epsilon
+                && $0.endBeat > currentBeat - epsilon
+        }
+        return Dictionary(
+            sounding.map { ($0.id, $0.hand) },
+            uniquingKeysWith: { first, _ in first }
+        )
+    }
+
     var hasSessionData: Bool {
         metrics.totalNotes > 0 || metrics.practicedSeconds > 0
     }
@@ -120,11 +230,14 @@ final class TempoStore {
         playbackService.stopAll()
         isPlaying = false
         selectedPieceID = piece.id
+        if let index = pieces.firstIndex(where: { $0.id == piece.id }) {
+            pieces[index].lastPracticed = .now
+            persistPieces()
+        }
         selectedSectionID = piece.sections.first?.id
-        currentBeat = 0
-        currentMeasure = 1
         metrics.reset()
         loadSelectedScore()
+        resetPracticePosition(from: parsedScore?.beat(atMeasure: selectedSection?.startMeasure ?? 1) ?? 0)
         if startPractice {
             destination = .library
             isPracticeWorkspacePresented = true
@@ -136,109 +249,225 @@ final class TempoStore {
         isPracticeWorkspacePresented = false
     }
 
+    func clearLibraryFilters() {
+        libraryQuickFilter = .all
+        selectedDifficulties.removeAll()
+        selectedGenres.removeAll()
+    }
+
+    func movePiece(_ pieceID: Piece.ID, to folderID: ScoreFolder.ID?) {
+        guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else { return }
+        pieces[index].folderID = folderID
+        persistPieces()
+    }
+
     func toggleFavorite(_ pieceID: Piece.ID) {
         guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else { return }
         pieces[index].isFavorite.toggle()
         persistPieces()
     }
 
-    func importFiles(_ urls: [URL]) {
-        for url in urls {
-            let canAccess = url.startAccessingSecurityScopedResource()
-            defer {
-                if canAccess {
-                    url.stopAccessingSecurityScopedResource()
-                }
+    func prepareImport(_ url: URL) {
+        let canAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if canAccess {
+                url.stopAccessingSecurityScopedResource()
             }
-
-            let storedURL = copyToScoreLibrary(url)
-            let parsed = storedURL.flatMap { try? MusicXMLScoreParser.parse(url: $0) }
-            let title = parsed?.title ?? url.deletingPathExtension().lastPathComponent
-            let measureCount = max(parsed?.measureCount ?? 1, 1)
-            let piece = Piece(
-                title: title,
-                composer: parsed?.composer ?? "",
-                collection: url.pathExtension.uppercased(),
-                fileName: url.lastPathComponent,
-                scorePath: storedURL?.path,
-                progress: 0,
-                bestAccuracy: 0,
-                difficulty: "Unrated",
-                sections: [
-                    PracticeSection(
-                        name: "Full score",
-                        startMeasure: 1,
-                        endMeasure: measureCount,
-                        mastery: 0
-                    )
-                ]
-            )
-            pieces.insert(piece, at: 0)
-            selectPiece(piece, startPractice: true)
         }
+
+        guard
+            let storedURL = copyToScoreLibrary(url),
+            let parsed = try? MusicXMLScoreParser.parse(url: storedURL)
+        else {
+            scoreError = "This file could not be imported as MusicXML."
+            return
+        }
+
+        pendingImport = PendingScoreImport(
+            storedURL: storedURL,
+            originalFileName: url.lastPathComponent,
+            parsedScore: parsed
+        )
+    }
+
+    func finishImport(
+        title: String,
+        composer: String,
+        difficulty: PieceDifficulty,
+        genre: PieceGenre,
+        folderID: ScoreFolder.ID?
+    ) {
+        guard let pendingImport else { return }
+        let parsed = pendingImport.parsedScore
+        let piece = Piece(
+            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+            composer: composer.trimmingCharacters(in: .whitespacesAndNewlines),
+            collection: pendingImport.storedURL.pathExtension.uppercased(),
+            fileName: pendingImport.originalFileName,
+            scorePath: pendingImport.storedURL.path,
+            progress: 0,
+            bestAccuracy: 0,
+            difficulty: difficulty.rawValue,
+            genre: genre.rawValue,
+            folderID: folderID,
+            sections: [
+                PracticeSection(
+                    name: "Full score",
+                    startMeasure: 1,
+                    endMeasure: max(parsed.measureCount, 1),
+                    mastery: 0
+                )
+            ]
+        )
+        pieces.insert(piece, at: 0)
+        self.pendingImport = nil
         persistPieces()
+        selectPiece(piece)
+        destination = .library
+        isPracticeWorkspacePresented = false
+    }
+
+    func cancelImport() {
+        guard let pendingImport else { return }
+        try? FileManager.default.removeItem(at: pendingImport.storedURL)
+        self.pendingImport = nil
+    }
+
+    func createFolder(named name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            !trimmed.isEmpty,
+            !folders.contains(where: {
+                $0.name.localizedCaseInsensitiveCompare(trimmed) == .orderedSame
+            })
+        else {
+            return
+        }
+        folders.append(ScoreFolder(name: trimmed))
+        folders.sort {
+            $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+        persistFolders()
     }
 
     func playPause() {
-        guard parsedScore != nil else { return }
+        guard let parsedScore else { return }
         isPlaying.toggle()
-        if isPlaying, currentBeat >= (parsedScore?.durationBeats ?? 0) {
+
+        if isPlaying {
+            if practiceMode == .guided {
+                currentBeat = targetBeat
+                currentMeasure = parsedScore.measure(at: targetBeat)
+            }
+            if currentBeat >= parsedScore.durationBeats {
+                resetPracticePosition(from: parsedScore.beat(atMeasure: selectedSection?.startMeasure ?? 1))
+            }
+            lastTickAt = nil
+            playbackService.resetSyncCursor()
+        } else if practiceMode == .guided {
+            syncPracticeTargetToPlaybackPosition()
+        }
+
+        syncPlayback()
+    }
+
+    func goToStart() {
+        playbackService.stopAll()
+        if practiceMode == .guided {
+            resetPracticePosition(from: 0)
+        } else {
             currentBeat = 0
             currentMeasure = 1
+            playbackService.resetSyncCursor()
         }
-        playbackService.sync(
-            events: parsedScore?.events ?? [],
-            at: currentBeat,
-            isPlaying: isPlaying
-        )
+        lastTickAt = nil
+        activeNotes.removeAll()
+        activeScoreFeedback.removeAll()
+        syncPlayback()
     }
 
     func restartSection() {
         playbackService.stopAll()
-        currentBeat = parsedScore?.beat(atMeasure: selectedSection?.startMeasure ?? 1) ?? 0
-        currentMeasure = selectedSection?.startMeasure ?? 1
+        let sectionStart = parsedScore?.beat(atMeasure: selectedSection?.startMeasure ?? 1) ?? 0
+        resetPracticePosition(from: sectionStart)
         activeNotes.removeAll()
         activeScoreFeedback.removeAll()
     }
 
     func skipForward() {
-        let nextMeasure = min(currentMeasure + 1, parsedScore?.measureCount ?? currentMeasure)
-        currentBeat = parsedScore?.beat(atMeasure: nextMeasure) ?? currentBeat
-        currentMeasure = nextMeasure
+        guard let parsedScore else { return }
+        let nextMeasure = min(currentMeasure + 1, parsedScore.measureCount)
+        let nextBeat = parsedScore.beat(atMeasure: nextMeasure)
+        if practiceMode == .guided {
+            resetPracticePosition(from: nextBeat)
+        } else {
+            currentBeat = nextBeat
+            currentMeasure = nextMeasure
+            playbackService.resetSyncCursor()
+        }
+        activeNotes.removeAll()
+        activeScoreFeedback.removeAll()
         syncPlayback()
     }
 
     func skipBackward() {
+        guard let parsedScore else { return }
         let previousMeasure = max(currentMeasure - 1, 1)
-        currentBeat = parsedScore?.beat(atMeasure: previousMeasure) ?? 0
-        currentMeasure = previousMeasure
+        let previousBeat = parsedScore.beat(atMeasure: previousMeasure)
+        if practiceMode == .guided {
+            resetPracticePosition(from: previousBeat)
+        } else {
+            currentBeat = previousBeat
+            currentMeasure = previousMeasure
+            playbackService.resetSyncCursor()
+        }
+        activeNotes.removeAll()
+        activeScoreFeedback.removeAll()
         syncPlayback()
     }
 
-    func tick(interval: TimeInterval = 0.05) {
-        guard isPlaying else { return }
-        guard let parsedScore else {
-            isPlaying = false
+    func tick(interval: TimeInterval = 0.02) {
+        if practiceMode == .guided, !isPlaying {
+            checkChordGraceTimeout()
+            lastTickAt = nil
             return
         }
 
-        metrics.practicedSeconds += interval
-        beatAccumulator += interval * Double(tempo) / 60
-
-        if beatAccumulator >= 0.02 {
-            currentBeat += beatAccumulator
-            beatAccumulator = 0
-            currentMeasure = parsedScore.measure(at: currentBeat)
-
-            if isLoopEnabled, let section = selectedSection, currentMeasure > section.endMeasure {
-                currentBeat = parsedScore.beat(atMeasure: section.startMeasure)
-                currentMeasure = section.startMeasure
-            } else if currentBeat >= parsedScore.durationBeats {
-                isPlaying = false
-                playbackService.stopAll()
-            }
-            syncPlayback()
+        guard isPlaying else {
+            lastTickAt = nil
+            return
         }
+        guard let parsedScore else {
+            isPlaying = false
+            lastTickAt = nil
+            return
+        }
+
+        // Advance by real elapsed wall-clock time so the tempo is accurate
+        // regardless of timer jitter (prevents notes bunching up / rushing).
+        let now = Date()
+        let elapsed = lastTickAt.map { now.timeIntervalSince($0) } ?? interval
+        lastTickAt = now
+        let delta = min(max(elapsed, 0), 0.25)
+
+        metrics.practicedSeconds += delta
+        currentBeat += delta * Double(tempo) / 60
+        currentMeasure = parsedScore.measure(at: currentBeat)
+
+        if isLoopEnabled, let section = selectedSection, currentMeasure > section.endMeasure {
+            let loopStart = parsedScore.beat(atMeasure: section.startMeasure)
+            currentBeat = loopStart
+            currentMeasure = section.startMeasure
+            playbackService.resetSyncCursor()
+        } else if currentBeat >= parsedScore.durationBeats {
+            isPlaying = false
+            lastTickAt = nil
+            playbackService.stopAll()
+            if practiceMode == .guided {
+                syncPracticeTargetToPlaybackPosition()
+            }
+        }
+        syncPlayback()
     }
 
     func receive(note: Int, velocity: Int = 80, previewSound: Bool = false) {
@@ -247,20 +476,40 @@ final class TempoStore {
             playbackService.preview(note: note, velocity: velocity)
         }
 
-        let matches = expectedEvents.filter { $0.midiNote == note }
+        let targets = expectedEvents
+        let matches = targets.filter { $0.midiNote == note }
         let isCorrect = !matches.isEmpty
         activeNotes[note] = isCorrect ? .correct : .incorrect
         metrics.register(correct: isCorrect)
-        for event in matches {
-            activeScoreFeedback[event.id] = .correct
+
+        if isCorrect {
+            for event in matches {
+                activeScoreFeedback[event.id] = .correct
+            }
+
+            if practiceMode == .guided, !isPlaying {
+                registerGuidedHit(note: note)
+            }
         }
 
-        Task {
-            try? await Task.sleep(for: .milliseconds(480))
-            activeNotes[note] = nil
-            for event in matches {
-                activeScoreFeedback[event.id] = nil
+        if previewSound {
+            Task {
+                try? await Task.sleep(for: .milliseconds(480))
+                clearFeedback(for: note, matches: matches)
             }
+        }
+    }
+
+    func release(note: Int) {
+        guard practiceMode != .guided else { return }
+        let matches = expectedEvents.filter { $0.midiNote == note }
+        clearFeedback(for: note, matches: matches)
+    }
+
+    private func clearFeedback(for note: Int, matches: [ScoreNoteEvent]) {
+        activeNotes[note] = nil
+        for event in matches {
+            activeScoreFeedback[event.id] = nil
         }
     }
 
@@ -279,6 +528,11 @@ final class TempoStore {
         defaults.set(data, forKey: Keys.pieces)
     }
 
+    private func persistFolders() {
+        guard let data = try? JSONEncoder().encode(folders) else { return }
+        defaults.set(data, forKey: Keys.folders)
+    }
+
     private func loadSelectedScore() {
         parsedScore = nil
         scoreError = nil
@@ -293,15 +547,9 @@ final class TempoStore {
             if let parsedTempo = parsed.tempo {
                 tempo = min(max(parsedTempo, 30), 180)
             }
-            currentMeasure = parsed.measure(at: currentBeat)
+            resetPracticePosition(from: currentBeat)
 
             if let index = pieces.firstIndex(where: { $0.id == selectedPieceID }) {
-                if let title = parsed.title, !title.isEmpty {
-                    pieces[index].title = title
-                }
-                if let composer = parsed.composer, !composer.isEmpty {
-                    pieces[index].composer = composer
-                }
                 pieces[index].sections = [
                     PracticeSection(
                         name: "Full score",
@@ -337,6 +585,93 @@ final class TempoStore {
         )
     }
 
+    private func resetPracticePosition(from beat: Double) {
+        let selectable = parsedScore?.events.filter(matchesSelectedHand) ?? []
+        let startBeat = ScoreTimeline.firstStartBeat(from: beat, in: selectable) ?? beat
+        targetBeat = startBeat
+        currentBeat = startBeat
+        currentMeasure = parsedScore?.measure(at: startBeat) ?? 1
+        hitNotesForTarget.removeAll()
+        chordGraceStartedAt = nil
+        beatAccumulator = 0
+        playbackService.resetSyncCursor()
+    }
+
+    private func registerGuidedHit(note: Int) {
+        guard !hitNotesForTarget.contains(note) else { return }
+        hitNotesForTarget.insert(note)
+        if chordGraceStartedAt == nil {
+            chordGraceStartedAt = Date()
+        }
+        tryCompleteTargetGroup()
+    }
+
+    private func tryCompleteTargetGroup() {
+        let expectedNotes = Set(expectedEvents.map(\.midiNote))
+        guard !expectedNotes.isEmpty, expectedNotes.isSubset(of: hitNotesForTarget) else { return }
+        advanceToNextTarget()
+    }
+
+    private func advanceToNextTarget() {
+        guard let parsedScore else { return }
+        let selectable = parsedScore.events.filter(matchesSelectedHand)
+        guard let nextBeat = ScoreTimeline.nextStartBeat(after: targetBeat, in: selectable) else {
+            isPlaying = false
+            playbackService.stopAll()
+            clearTargetFeedback()
+            return
+        }
+
+        targetBeat = nextBeat
+        currentBeat = nextBeat
+        currentMeasure = parsedScore.measure(at: nextBeat)
+        clearTargetFeedback()
+        playbackService.resetSyncCursor()
+        syncPlayback()
+    }
+
+    private func clearTargetFeedback() {
+        hitNotesForTarget.removeAll()
+        chordGraceStartedAt = nil
+        activeNotes.removeAll()
+        activeScoreFeedback.removeAll()
+    }
+
+    private func syncPracticeTargetToPlaybackPosition() {
+        guard practiceMode == .guided, let parsedScore else { return }
+        let selectable = parsedScore.events.filter(matchesSelectedHand)
+        if let activeStart = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectable) {
+            targetBeat = activeStart
+        } else if let nextBeat = ScoreTimeline.firstStartBeat(from: currentBeat, in: selectable) {
+            targetBeat = nextBeat
+        } else {
+            targetBeat = currentBeat
+        }
+        clearTargetFeedback()
+    }
+
+    private func checkChordGraceTimeout() {
+        guard practiceMode == .guided,
+              let startedAt = chordGraceStartedAt,
+              !expectedEvents.isEmpty
+        else {
+            return
+        }
+
+        let expectedNotes = Set(expectedEvents.map(\.midiNote))
+        guard !expectedNotes.isSubset(of: hitNotesForTarget) else { return }
+        guard Date().timeIntervalSince(startedAt) >= Self.chordGracePeriod else { return }
+
+        hitNotesForTarget.removeAll()
+        chordGraceStartedAt = nil
+        for note in expectedNotes {
+            activeNotes[note] = nil
+        }
+        for event in expectedEvents {
+            activeScoreFeedback[event.id] = nil
+        }
+    }
+
     private func copyToScoreLibrary(_ sourceURL: URL) -> URL? {
         let fileManager = FileManager.default
         guard
@@ -357,10 +692,9 @@ final class TempoStore {
                 at: scoresDirectory,
                 withIntermediateDirectories: true
             )
-            let destination = scoresDirectory.appendingPathComponent(sourceURL.lastPathComponent)
-            if fileManager.fileExists(atPath: destination.path) {
-                try fileManager.removeItem(at: destination)
-            }
+            let destination = scoresDirectory.appendingPathComponent(
+                "\(UUID().uuidString)-\(sourceURL.lastPathComponent)"
+            )
             try fileManager.copyItem(at: sourceURL, to: destination)
             return destination
         } catch {
@@ -381,8 +715,19 @@ final class TempoStore {
         }
     }
 
+    private static func loadFolders(defaults: UserDefaults) -> [ScoreFolder] {
+        guard
+            let data = defaults.data(forKey: Keys.folders),
+            let folders = try? JSONDecoder().decode([ScoreFolder].self, from: data)
+        else {
+            return []
+        }
+        return folders
+    }
+
     private enum Keys {
         static let pieces = "tempo.pieces"
+        static let folders = "tempo.folders"
         static let sidebarCollapsed = "tempo.sidebarCollapsed"
         static let inspectorVisible = "tempo.inspectorVisible"
     }

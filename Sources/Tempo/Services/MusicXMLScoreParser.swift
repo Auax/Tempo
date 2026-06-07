@@ -50,6 +50,7 @@ enum MusicXMLScoreParser {
             var furthestCursor = 0.0
             var lastNoteStart = 0.0
             var eventIndex = 0
+            var pendingGraceGroups: [[Int]] = []
 
             for child in measure.children ?? [] {
                 guard let element = child as? XMLElement else { continue }
@@ -62,7 +63,8 @@ enum MusicXMLScoreParser {
                 case "note":
                     let duration = durationValue(in: element) / divisions
                     let isChord = element.elements(forName: "chord").isEmpty == false
-                    let start = isChord ? lastNoteStart : cursor
+                    let isGrace = element.elements(forName: "grace").isEmpty == false
+                    var start = isChord ? lastNoteStart : cursor
                     if !isChord {
                         lastNoteStart = start
                     }
@@ -70,31 +72,51 @@ enum MusicXMLScoreParser {
                     if element.elements(forName: "rest").isEmpty,
                        let midiNote = midiNote(in: element) {
                         eventIndex += 1
-                        let eventID = element.attribute(forName: "xml:id")?.stringValue
-                            ?? element.attribute(forName: "id")?.stringValue
+                        let eventID = element.attribute(forName: "id")?.stringValue
+                            ?? element.attribute(forName: "xml:id")?.stringValue
                             ?? "tempo-m\(measureNumber)-n\(eventIndex)"
-                        if element.attribute(forName: "xml:id") == nil {
+                        if element.attribute(forName: "id") == nil {
                             element.addAttribute(
                                 XMLNode.attribute(
-                                    withName: "xml:id",
+                                    withName: "id",
                                     stringValue: eventID
                                 ) as! XMLNode
                             )
                         }
+
+                        if !isGrace, !isChord, !pendingGraceGroups.isEmpty {
+                            start = scheduleGraceGroups(
+                                pendingGraceGroups,
+                                before: measureStart + start,
+                                events: &events
+                            ) - measureStart
+                            lastNoteStart = start
+                            pendingGraceGroups.removeAll()
+                        }
+
                         let staff = Int(firstText(in: element, xpath: "./staff") ?? "1") ?? 1
+                        let eventArrayIndex = events.count
                         events.append(
                             ScoreNoteEvent(
                                 id: eventID,
                                 midiNote: midiNote,
                                 startBeat: measureStart + start,
-                                duration: max(duration, 0.05),
+                                duration: max(duration, ScoreTimeline.beatEqualityEpsilon),
                                 measure: measureNumber,
                                 hand: staff == 2 ? .left : .right
                             )
                         )
+
+                        if isGrace {
+                            if isChord, !pendingGraceGroups.isEmpty {
+                                pendingGraceGroups[pendingGraceGroups.count - 1].append(eventArrayIndex)
+                            } else {
+                                pendingGraceGroups.append([eventArrayIndex])
+                            }
+                        }
                     }
 
-                    if !isChord {
+                    if !isChord, !isGrace {
                         cursor += duration
                         furthestCursor = max(furthestCursor, cursor)
                     }
@@ -103,7 +125,19 @@ enum MusicXMLScoreParser {
                 }
             }
 
-            let duration = max(furthestCursor, beatsPerMeasure)
+            if !pendingGraceGroups.isEmpty {
+                _ = scheduleGraceGroups(
+                    pendingGraceGroups,
+                    before: measureStart + cursor,
+                    events: &events
+                )
+            }
+
+            // Use the measure's actual content duration (including rests) rather than
+            // padding to the time signature. Padding inflated pickup/anacrusis measures,
+            // which shifted every later beat out of sync with the engraved score
+            // (breaking note highlighting) and inserted phantom gaps during playback.
+            let duration = furthestCursor > 0 ? furthestCursor : beatsPerMeasure
             measureDurations[measureNumber] = duration
             measureStart += duration
         }
@@ -144,6 +178,53 @@ enum MusicXMLScoreParser {
 
     private static func durationValue(in element: XMLElement) -> Double {
         Double(firstText(in: element, xpath: "./duration") ?? "0") ?? 0
+    }
+
+    private static func scheduleGraceGroups(
+        _ groups: [[Int]],
+        before anchorBeat: Double,
+        events: inout [ScoreNoteEvent]
+    ) -> Double {
+        guard !groups.isEmpty else { return anchorBeat }
+
+        // MusicXML grace notes usually omit duration. Give each engraved grace
+        // group a short playback slot so a run is heard and highlighted in order.
+        let preferredDuration = min(0.125, 0.5 / Double(groups.count))
+        let preferredTotal = preferredDuration * Double(groups.count)
+        let groupDuration: Double
+        let graceStart: Double
+        let regularNoteStart: Double
+
+        if anchorBeat >= preferredTotal {
+            groupDuration = preferredDuration
+            graceStart = anchorBeat - preferredTotal
+            regularNoteStart = anchorBeat
+        } else if anchorBeat > 0 {
+            groupDuration = anchorBeat / Double(groups.count)
+            graceStart = 0
+            regularNoteStart = anchorBeat
+        } else {
+            groupDuration = preferredDuration
+            graceStart = 0
+            regularNoteStart = preferredTotal
+        }
+
+        for (groupOffset, eventIndices) in groups.enumerated() {
+            let startBeat = graceStart + Double(groupOffset) * groupDuration
+            for eventIndex in eventIndices {
+                let event = events[eventIndex]
+                events[eventIndex] = ScoreNoteEvent(
+                    id: event.id,
+                    midiNote: event.midiNote,
+                    startBeat: startBeat,
+                    duration: groupDuration,
+                    measure: event.measure,
+                    hand: event.hand
+                )
+            }
+        }
+
+        return regularNoteStart
     }
 
     private static func midiNote(in element: XMLElement) -> Int? {
