@@ -6,12 +6,28 @@ struct LibraryScoreCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
-            Button {
-                store.selectPiece(piece, startPractice: true)
-            } label: {
-                ScoreGradientArtwork(piece: piece)
+            ZStack(alignment: .topLeading) {
+                Button {
+                    store.selectPiece(piece, startPractice: true)
+                } label: {
+                    ScoreGradientArtwork(piece: piece)
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    store.toggleFavorite(piece.id)
+                } label: {
+                    Image(systemName: piece.isFavorite ? "star.fill" : "star")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(
+                            piece.isFavorite ? Color.tempoOrange : .white.opacity(0.75)
+                        )
+                        .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
+                        .padding(9)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {

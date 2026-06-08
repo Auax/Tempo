@@ -8,19 +8,19 @@ struct ContentView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            if !store.focusMode {
+            if !store.sidebarHidden, !store.focusMode {
                 SidebarView(store: store)
                     .transition(.move(edge: .leading).combined(with: .opacity))
             }
 
-            Group {
-                if store.isPracticeWorkspacePresented {
-                    PracticeWorkspaceView(store: store)
-                } else {
-                    destinationView
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            mainContent
+                .padding(
+                    .leading,
+                    store.sidebarHidden || store.focusMode
+                        ? 0
+                        : -TempoTheme.Layout.contentSidebarOverlap
+                )
+                .zIndex(1)
 
             if store.isPracticeWorkspacePresented,
                store.inspectorVisible,
@@ -30,7 +30,27 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 980, minHeight: 680)
+        .background {
+            TempoWindowConfigurator()
+                .frame(width: 0, height: 0)
+        }
+        .background(Color.tempoWorkspaceBackground.ignoresSafeArea())
+        .toolbar(removing: .title)
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    withAnimation(TempoTheme.Motion.standard) {
+                        store.sidebarHidden.toggle()
+                    }
+                } label: {
+                    Image(systemName: "sidebar.left")
+                }
+                .help(store.sidebarHidden ? "Show Sidebar" : "Hide Sidebar")
+            }
+        }
         .buttonBorderShape(.roundedRectangle(radius: TempoTheme.Radius.control))
+        .animation(TempoTheme.Motion.standard, value: store.sidebarHidden)
         .animation(TempoTheme.Motion.standard, value: store.focusMode)
         .animation(TempoTheme.Motion.standard, value: store.inspectorVisible)
         .fileImporter(
@@ -65,7 +85,7 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .tempoToggleSidebar)) { _ in
             withAnimation(TempoTheme.Motion.standard) {
-                store.sidebarCollapsed.toggle()
+                store.sidebarHidden.toggle()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .tempoToggleInspector)) { _ in
@@ -84,6 +104,35 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tempoImportScore)) { _ in
             store.showingImporter = true
         }
+    }
+
+    private var mainContent: some View {
+        Group {
+            if store.isPracticeWorkspacePresented {
+                PracticeWorkspaceView(store: store)
+            } else {
+                destinationView
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.tempoWorkspaceBackground)
+        .clipShape(contentShape)
+        .overlay {
+            contentShape
+                .stroke(Color.primary.opacity(0.16), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.12), radius: 6, x: -1)
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var contentShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            cornerRadii: .init(
+                topLeading: TempoTheme.Radius.window,
+                bottomLeading: TempoTheme.Radius.window
+            ),
+            style: .continuous
+        )
     }
 
     private var scoreTypes: [UTType] {

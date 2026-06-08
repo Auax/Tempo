@@ -3,37 +3,13 @@ import SwiftUI
 struct SidebarView: View {
     @Bindable var store: TempoStore
 
-    private var compact: Bool {
-        store.sidebarCollapsed
-    }
-
     var body: some View {
-        VStack(alignment: compact ? .center : .leading, spacing: 0) {
-            HStack {
-                TempoLogo(compact: compact)
-                Spacer(minLength: 0)
-                if !compact {
-                    Button {
-                        withAnimation(TempoTheme.Motion.standard) {
-                            store.sidebarCollapsed = true
-                        }
-                    } label: {
-                        Image(systemName: "sidebar.left")
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    .help("Collapse Sidebar")
-                }
-            }
-            .padding(.horizontal, compact ? 22 : 18)
-            .frame(height: TempoTheme.Layout.topBarHeight)
-
-            VStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 6) {
                 ForEach(AppDestination.allCases) { destination in
                     SidebarItem(
                         destination: destination,
-                        selected: store.destination == destination,
-                        compact: compact
+                        selected: store.destination == destination
                     ) {
                         withAnimation(TempoTheme.Motion.quick) {
                             store.openDestination(destination)
@@ -41,42 +17,31 @@ struct SidebarView: View {
                     }
                 }
             }
-            .padding(.horizontal, compact ? 10 : 12)
-            .padding(.top, 8)
+            .padding(.horizontal, 18)
 
-            Divider()
-                .padding(.vertical, 16)
+            if store.isPracticeWorkspacePresented {
+                Divider()
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
 
-            if compact {
-                compactPracticeControls
-            } else {
                 expandedPracticeControls
             }
 
             Spacer(minLength: 12)
 
             connectionStatus
-                .padding(compact ? 10 : 14)
+                .padding(14)
         }
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(.primary.opacity(0.07))
-                .frame(width: 1)
-        }
-        .frame(
-            width: compact
-                ? TempoTheme.Layout.sidebarCollapsed
-                : TempoTheme.Layout.sidebarExpanded
-        )
-        .animation(TempoTheme.Motion.standard, value: compact)
+        .frame(width: TempoTheme.Layout.sidebarExpanded)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .tempoGlassPanel()
+        .safeAreaPadding(.top, 18)
     }
 
     private var expandedPracticeControls: some View {
         VStack(alignment: .leading, spacing: 18) {
-            
-
-            if let sections = store.selectedPiece?.sections {
+            if store.isPracticeWorkspacePresented,
+               let sections = store.selectedPiece?.sections {
                 VStack(alignment: .leading, spacing: 8) {
                     sectionLabel("Practice Sections")
                     ForEach(sections) { section in
@@ -117,48 +82,20 @@ struct SidebarView: View {
                 }
             }
 
-            HStack {
-                Label("Loop section", systemImage: "repeat")
-                    .font(.caption)
-                Spacer()
-                Toggle("", isOn: $store.isLoopEnabled)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .tint(.tempoBlue)
+            if store.isPracticeWorkspacePresented {
+                HStack {
+                    Label("Loop section", systemImage: "repeat")
+                        .font(.caption)
+                    Spacer()
+                    Toggle("", isOn: $store.isLoopEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .tint(.tempoBlue)
+                }
             }
         }
         .padding(.horizontal, 14)
-    }
-
-    private var compactPracticeControls: some View {
-        VStack(spacing: 12) {
-            Button {
-                withAnimation(TempoTheme.Motion.standard) {
-                    store.sidebarCollapsed = false
-                }
-            } label: {
-                Image(systemName: "sidebar.right")
-                    .frame(width: 36, height: 32)
-            }
-            .buttonStyle(.borderless)
-            .help("Expand Sidebar")
-
-            if let piece = store.selectedPiece {
-                PieceArtwork(title: piece.title, size: 38)
-                    .help(piece.title)
-            }
-
-            Button {
-                store.isLoopEnabled.toggle()
-            } label: {
-                Image(systemName: store.isLoopEnabled ? "repeat.circle.fill" : "repeat.circle")
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(store.isLoopEnabled ? Color.tempoBlue : .secondary)
-            }
-            .buttonStyle(.plain)
-            .help("Toggle Loop")
-        }
     }
 
     private var connectionStatus: some View {
@@ -170,17 +107,15 @@ struct SidebarView: View {
                 Circle()
                     .fill(store.midiService.isConnected ? Color.tempoGreen : .secondary)
                     .frame(width: 8, height: 8)
-                if !compact {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(store.midiService.isConnected ? "Piano Connected" : "Connect Piano")
-                            .font(.caption.weight(.medium))
-                        Text(store.midiService.activeSourceName ?? "No MIDI input detected")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(store.midiService.isConnected ? "Piano Connected" : "Connect Piano")
+                        .font(.caption.weight(.medium))
+                    Text(store.midiService.activeSourceName ?? "No MIDI input detected")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
+                Spacer(minLength: 0)
             }
             .contentShape(Rectangle())
         }
@@ -199,27 +134,24 @@ struct SidebarView: View {
 private struct SidebarItem: View {
     let destination: AppDestination
     let selected: Bool
-    let compact: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 11) {
                 Image(systemName: destination.symbol)
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 20)
-                if !compact {
-                    Text(destination.title)
-                        .font(.subheadline.weight(selected ? .semibold : .regular))
-                    Spacer(minLength: 0)
-                }
+                    .font(.system(size: 17, weight: .regular))
+                    .frame(width: 24)
+                Text(destination.title)
+                    .font(.system(size: 16, weight: selected ? .medium : .regular))
+                Spacer(minLength: 0)
             }
-            .foregroundStyle(selected ? Color.tempoBlue : .primary)
-            .padding(.horizontal, compact ? 8 : 10)
-            .frame(maxWidth: .infinity, minHeight: 38)
+            .foregroundStyle(selected ? .primary : .secondary)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(
-                selected ? Color.tempoBlue.opacity(0.13) : .clear,
-                in: RoundedRectangle(cornerRadius: 9)
+                selected ? Color.primary.opacity(0.09) : .clear,
+                in: RoundedRectangle(cornerRadius: 10)
             )
             .contentShape(Rectangle())
         }

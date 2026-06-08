@@ -88,6 +88,15 @@ final class PianoPlaybackService {
         }
     }
 
+    func metronomeClick() {
+        startEngineIfNeeded()
+        sampler.startNote(76, withVelocity: 72, onChannel: 9)
+        Task {
+            try? await Task.sleep(for: .milliseconds(60))
+            sampler.stopNote(76, onChannel: 9)
+        }
+    }
+
     func stopAll() {
         for note in soundingNotes {
             sampler.stopNote(UInt8(note), onChannel: 0)

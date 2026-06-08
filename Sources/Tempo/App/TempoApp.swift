@@ -38,7 +38,7 @@ struct TempoApp: App {
                 }
                 .keyboardShortcut("i", modifiers: [.command, .option])
 
-                Button("Collapse or Expand Sidebar") {
+                Button("Show or Hide Sidebar") {
                     NotificationCenter.default.post(name: .tempoToggleSidebar, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: [.command, .option])

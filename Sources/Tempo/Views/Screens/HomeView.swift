@@ -5,7 +5,7 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Welcome back")
@@ -21,40 +21,55 @@ struct HomeView: View {
                     }
                     .tempoProminentButton()
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TempoTheme.Spacing.xLarge)
+                .padding(.top, TempoTheme.Spacing.xLarge)
+                .padding(.bottom, TempoTheme.Spacing.large)
 
-                if store.pieces.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Scores Yet", systemImage: "music.note.list")
-                    } description: {
-                        Text("Import a MusicXML file to start practicing.")
-                    } actions: {
-                        Button("Import Score") {
-                            store.showingImporter = true
+                VStack(alignment: .leading, spacing: 26) {
+                    if store.pieces.isEmpty {
+                        ContentUnavailableView {
+                            Label("No Scores Yet", systemImage: "music.note.list")
+                        } description: {
+                            Text("Import a MusicXML file to start practicing.")
+                        } actions: {
+                            Button("Import Score") {
+                                store.showingImporter = true
+                            }
+                            .tempoProminentButton()
                         }
-                        .tempoProminentButton()
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 360)
-                } else {
-                    if let piece = store.selectedPiece {
-                        ContinuePracticeCard(piece: piece, store: store)
-                    }
+                        .frame(maxWidth: .infinity, minHeight: 360)
+                    } else {
+                        if let piece = store.recentlyPracticedPiece {
+                            ContinuePracticeCard(piece: piece, store: store)
+                        }
 
-                    Text("Your Scores")
-                        .font(.title2.weight(.semibold))
+                        Text("Your Scores")
+                            .font(.title2.weight(.semibold))
 
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 220), spacing: 16)],
-                        spacing: 16
-                    ) {
-                        ForEach(store.pieces) { piece in
-                            PieceCard(piece: piece, store: store)
+                        LazyVGrid(
+                            columns: [
+                                GridItem(
+                                    .adaptive(
+                                        minimum: TempoTheme.Layout.libraryScoreCardMin,
+                                        maximum: TempoTheme.Layout.libraryScoreCardMax
+                                    ),
+                                    spacing: TempoTheme.Spacing.large
+                                )
+                            ],
+                            spacing: TempoTheme.Spacing.large
+                        ) {
+                            ForEach(store.pieces) { piece in
+                                LibraryScoreCard(piece: piece, store: store)
+                            }
                         }
                     }
                 }
+                .padding(.horizontal, TempoTheme.Spacing.xLarge)
+                .padding(.top, TempoTheme.Spacing.xLarge)
+                .padding(.bottom, TempoTheme.Spacing.xLarge)
             }
-            .padding(30)
-            .frame(maxWidth: 1180)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color.primary.opacity(0.025))
     }
@@ -66,7 +81,8 @@ private struct ContinuePracticeCard: View {
 
     var body: some View {
         HStack(spacing: 24) {
-            PieceArtwork(title: piece.title, size: 96)
+            ScoreGradientArtwork(piece: piece)
+                .frame(width: 132)
 
             VStack(alignment: .leading, spacing: 7) {
                 Text("CONTINUE PRACTICING")
@@ -109,53 +125,5 @@ private struct ContinuePracticeCard: View {
             RoundedRectangle(cornerRadius: TempoTheme.Radius.xLarge)
                 .stroke(Color.tempoBlue.opacity(0.18))
         }
-    }
-}
-
-struct PieceCard: View {
-    let piece: Piece
-    @Bindable var store: TempoStore
-
-    var body: some View {
-        Button {
-            store.selectPiece(piece, startPractice: true)
-        } label: {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top) {
-                    PieceArtwork(title: piece.title, size: 58)
-                    Spacer()
-                    Button {
-                        store.toggleFavorite(piece.id)
-                    } label: {
-                        Image(systemName: piece.isFavorite ? "star.fill" : "star")
-                            .foregroundStyle(
-                                piece.isFavorite ? Color.tempoOrange : .secondary
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(piece.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    Text(piece.composer)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                HStack {
-                    Label(piece.collection, systemImage: "doc.text")
-                    Spacer()
-                    Text(piece.sections.first?.measureLabel ?? "")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-            .tempoCard()
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 }

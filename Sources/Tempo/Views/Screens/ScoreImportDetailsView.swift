@@ -33,6 +33,62 @@ struct ScoreImportDetailsView: View {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private var selectedFolderName: String {
+        guard let folderID,
+              let folder = store.folders.first(where: { $0.id == folderID })
+        else {
+            return "No Folder"
+        }
+        return folder.name
+    }
+
+    private var folderPicker: some View {
+        Menu {
+            Button {
+                folderID = nil
+            } label: {
+                if folderID == nil {
+                    Label("No Folder", systemImage: "checkmark")
+                } else {
+                    Text("No Folder")
+                }
+            }
+            ForEach(store.folders) { folder in
+                Button {
+                    folderID = folder.id
+                } label: {
+                    if folderID == folder.id {
+                        Label(folder.name, systemImage: "checkmark")
+                    } else {
+                        Text(folder.name)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                Text(selectedFolderName)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .font(.subheadline)
+            .padding(.horizontal, TempoTheme.Spacing.medium)
+            .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.controlHeight, alignment: .leading)
+            .background(
+                .regularMaterial,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                    .stroke(Color.tempoControlBorder, lineWidth: 1)
+            }
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .leading, spacing: 5) {
@@ -44,8 +100,7 @@ struct ScoreImportDetailsView: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 field("Name") {
-                    TextField("Score name", text: $title)
-                        .textFieldStyle(.roundedBorder)
+                    TempoTextField(prompt: "Score name", text: $title)
                 }
 
                 field("Composer") {
@@ -82,35 +137,26 @@ struct ScoreImportDetailsView: View {
 
                 HStack(alignment: .top, spacing: 18) {
                     field("Difficulty") {
-                        Picker("Difficulty", selection: $difficulty) {
-                            ForEach(PieceDifficulty.allCases) { value in
-                                Text(value.rawValue).tag(value)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity)
+                        TempoMenuPicker(
+                            selection: $difficulty,
+                            options: Array(PieceDifficulty.allCases),
+                            label: \.rawValue
+                        )
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     field("Genre") {
-                        Picker("Genre", selection: $genre) {
-                            ForEach(PieceGenre.allCases) { value in
-                                Text(value.rawValue).tag(value)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity)
+                        TempoMenuPicker(
+                            selection: $genre,
+                            options: Array(PieceGenre.allCases),
+                            label: \.rawValue
+                        )
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 field("Folder") {
-                    Picker("Folder", selection: $folderID) {
-                        Text("No Folder").tag(ScoreFolder.ID?.none)
-                        ForEach(store.folders) { folder in
-                            Text(folder.name).tag(Optional(folder.id))
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
+                    folderPicker
                 }
             }
 

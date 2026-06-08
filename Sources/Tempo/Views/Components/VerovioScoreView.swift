@@ -302,9 +302,7 @@ private struct SVGScoreWebView: NSViewRepresentable {
               }
               svg g, svg .definition-scale { color: #151515 !important; }
               svg use, svg text { fill: #151515 !important; color: #151515 !important; }
-              .tempo-right { --tempo-highlight-color: #7844f5; }
-              .tempo-left { --tempo-highlight-color: #08a8c2; }
-              .tempo-playing { --tempo-highlight-color: #f5a623; }
+              .tempo-active { --tempo-highlight-color: #f5a623; }
               .tempo-correct { --tempo-highlight-color: #35b95c; }
               .tempo-incorrect { --tempo-highlight-color: #e84a52; }
               [data-tempo-highlight] use,
@@ -324,17 +322,17 @@ private struct SVGScoreWebView: NSViewRepresentable {
             <script>
               function tempoHighlight(payload) {
                 const highlightClasses = [
-                  'tempo-right',
-                  'tempo-left',
-                  'tempo-playing',
+                  'tempo-active',
                   'tempo-correct',
                   'tempo-incorrect'
                 ];
+                const animatedNodes = new Set();
                 function applyHighlight(node, className) {
                   if (!node) { return; }
                   node.classList.remove(...highlightClasses);
                   node.classList.add(className);
                   node.setAttribute('data-tempo-highlight', '1');
+                  animatedNodes.add(node);
                 }
                 document.querySelectorAll('[data-tempo-highlight]').forEach(function(node) {
                   node.classList.remove(...highlightClasses);
@@ -343,20 +341,27 @@ private struct SVGScoreWebView: NSViewRepresentable {
                 Object.entries(payload).forEach(function(entry) {
                   const node = document.querySelector('svg [data-id="' + entry[0] + '"]');
                   if (node) {
-                    applyHighlight(node, entry[1]);
-
                     const chord = node.parentElement?.matches('[data-class="chord"]')
                       ? node.parentElement
                       : null;
-                    applyHighlight(chord?.querySelector(':scope > [data-class="stem"]'), entry[1]);
+                    applyHighlight(chord || node, entry[1]);
 
                     document.querySelectorAll(
-                      'svg [data-related~="#' + entry[0] + '"]'
-                    ).forEach(function(relatedNode) {
-                      applyHighlight(relatedNode, entry[1]);
+                      'svg [data-class="lineDash"][data-related~="#' + entry[0] + '"]'
+                    ).forEach(function(ledgerLine) {
+                      applyHighlight(ledgerLine, entry[1]);
                     });
                   }
                 });
+
+                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                  animatedNodes.forEach(function(node) {
+                    node.animate(
+                      [{ opacity: 0.68 }, { opacity: 1 }],
+                      { duration: 150, easing: 'ease-out' }
+                    );
+                  });
+                }
               }
 
               function tempoScrollToSystem(measureNumber, candidateIDs, animated) {
@@ -414,11 +419,9 @@ private struct SVGScoreWebView: NSViewRepresentable {
         }
 
         func applyHighlights(to webView: WKWebView) {
-            var classes = expectedNotes.mapValues {
-                $0 == .right ? "tempo-right" : "tempo-left"
-            }
+            var classes = expectedNotes.mapValues { _ in "tempo-active" }
             for id in playingNotes.keys {
-                classes[id] = "tempo-playing"
+                classes[id] = "tempo-active"
             }
             for (id, noteFeedback) in feedback {
                 classes[id] = noteFeedback == .correct

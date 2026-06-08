@@ -1,11 +1,53 @@
 import SwiftUI
 
+private struct TempoControlFieldChrome<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        HStack(spacing: 9) {
+            content()
+        }
+        .padding(.horizontal, 12)
+        .frame(height: TempoTheme.Layout.controlHeight)
+        .background(
+            .regularMaterial,
+            in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                .stroke(.primary.opacity(0.11))
+        }
+    }
+}
+
+struct TempoTextField: View {
+    let prompt: String
+    @Binding var text: String
+    var showsClearButton = true
+
+    var body: some View {
+        TempoControlFieldChrome {
+            TextField(prompt, text: $text)
+                .textFieldStyle(.plain)
+            if showsClearButton, !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
 struct TempoSearchField: View {
     let prompt: String
     @Binding var text: String
 
     var body: some View {
-        HStack(spacing: 9) {
+        TempoControlFieldChrome {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
             TextField(prompt, text: $text)
@@ -20,16 +62,50 @@ struct TempoSearchField: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 12)
-        .frame(height: TempoTheme.Layout.controlHeight)
-        .background(
-            .regularMaterial,
-            in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-                .stroke(.primary.opacity(0.11))
+    }
+}
+
+struct TempoMenuPicker<Selection: Hashable>: View {
+    @Binding var selection: Selection
+    let options: [Selection]
+    let label: (Selection) -> String
+
+    var body: some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    selection = option
+                } label: {
+                    if selection == option {
+                        Label(label(option), systemImage: "checkmark")
+                    } else {
+                        Text(label(option))
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                Text(label(selection))
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .font(.subheadline)
+            .padding(.horizontal, TempoTheme.Spacing.medium)
+            .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.controlHeight, alignment: .leading)
+            .background(
+                .regularMaterial,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                    .stroke(Color.tempoControlBorder, lineWidth: 1)
+            }
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
     }
 }
 
@@ -136,14 +212,5 @@ struct ScoreGradientArtwork: View {
         }
         .aspectRatio(0.78, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(alignment: .topLeading) {
-            if piece.isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(Color.tempoOrange)
-                    .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
-                    .padding(9)
-            }
-        }
     }
 }

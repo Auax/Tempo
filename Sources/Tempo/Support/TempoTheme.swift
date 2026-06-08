@@ -1,4 +1,46 @@
 import SwiftUI
+import AppKit
+
+struct TempoGlassBackground: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .sidebar
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+struct TempoWindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        DispatchQueue.main.async {
+            configure(windowFor: view)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            configure(windowFor: nsView)
+        }
+    }
+
+    private func configure(windowFor view: NSView) {
+        guard let window = view.window else { return }
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
+        window.toolbarStyle = .unified
+        window.titlebarSeparatorStyle = .none
+        window.toolbar?.showsBaselineSeparator = false
+        window.isMovableByWindowBackground = true
+        window.backgroundColor = .clear
+        window.isOpaque = false
+    }
+}
 
 enum TempoTheme {
     enum Spacing {
@@ -16,12 +58,13 @@ enum TempoTheme {
         static let medium: CGFloat = 12
         static let large: CGFloat = 18
         static let xLarge: CGFloat = 24
+        static let window: CGFloat = 22
     }
 
     enum Layout {
         static let controlHeight: CGFloat = 30
-        static let sidebarExpanded: CGFloat = 248
-        static let sidebarCollapsed: CGFloat = 76
+        static let sidebarExpanded: CGFloat = 270
+        static let contentSidebarOverlap: CGFloat = 10
         static let inspectorWidth: CGFloat = 286
         static let topBarHeight: CGFloat = 64
         static let transportHeight: CGFloat = 66
@@ -29,8 +72,8 @@ enum TempoTheme {
         static let libraryFilterWidth: CGFloat = 220
         static let librarySearchMaxWidth: CGFloat = 410
         static let librarySortPickerWidth: CGFloat = 200
-        static let libraryScoreCardMin: CGFloat = 190
-        static let libraryScoreCardMax: CGFloat = 230
+        static let libraryScoreCardMin: CGFloat = 220
+        static let libraryScoreCardMax: CGFloat = 270
         static let libraryBrowseCardMin: CGFloat = 220
     }
 
@@ -60,6 +103,10 @@ extension Color {
     static let tempoControlBorder = Color(
         light: NSColor(calibratedWhite: 0.0, alpha: 0.10),
         dark: NSColor(calibratedWhite: 1.0, alpha: 0.12)
+    )
+    static let tempoWorkspaceBackground = Color(
+        light: NSColor(calibratedWhite: 0.98, alpha: 1.0),
+        dark: NSColor(calibratedRed: 0.055, green: 0.055, blue: 0.06, alpha: 1.0)
     )
 
     init(light: NSColor, dark: NSColor) {
@@ -124,5 +171,12 @@ extension View {
                 RoundedRectangle(cornerRadius: TempoTheme.Radius.large)
                     .stroke(.primary.opacity(0.08), lineWidth: 1)
             }
+    }
+
+    func tempoGlassPanel() -> some View {
+        background {
+            TempoGlassBackground()
+                .ignoresSafeArea()
+        }
     }
 }

@@ -56,9 +56,13 @@ enum ScoreTimeline {
 
     static func activeStartBeat(at beat: Double, in events: [ScoreNoteEvent]) -> Double? {
         events
-            .filter { $0.startBeat <= beat + beatEqualityEpsilon }
+            .filter { $0.startBeat <= beat }
             .map(\.startBeat)
             .max()
+    }
+
+    static func isSounding(_ event: ScoreNoteEvent, at beat: Double) -> Bool {
+        event.startBeat <= beat && event.endBeat > beat
     }
 
     static func nextStartBeat(after beat: Double, in events: [ScoreNoteEvent]) -> Double? {

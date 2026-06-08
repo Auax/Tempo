@@ -34,20 +34,11 @@ struct LibraryView: View {
                 Text("Manage and organize your scores")
                     .foregroundStyle(.secondary)
             }
-
-            Spacer()
-
-            Button {
-                store.showingImporter = true
-            } label: {
-                Label("Import Score", systemImage: "square.and.arrow.down")
-            }
-            .tempoProminentButton()
-
-      
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, TempoTheme.Spacing.xLarge)
         .padding(.top, TempoTheme.Spacing.xLarge)
+        .padding(.bottom, TempoTheme.Spacing.large)
     }
 
     private var sectionBar: some View {
@@ -92,35 +83,46 @@ struct LibraryView: View {
 
             Spacer(minLength: 0)
 
-            if store.librarySection == .folders, openFolderID == nil {
-                Button {
-                    store.showingNewFolder = true
-                } label: {
-                    Label("New Folder", systemImage: "folder.badge.plus")
-                }
-                .tempoBorderedButton()
-            } else if showsBrowseControls {
-                browseControls
-            }
+            sectionBarActions
         }
         .padding(.horizontal, TempoTheme.Spacing.xxLarge)
         .padding(.bottom, TempoTheme.Spacing.medium)
     }
 
-    private var showsBrowseControls: Bool {
-        store.librarySection == .allScores
+    private var sectionBarActions: some View {
+        HStack(spacing: TempoTheme.Spacing.medium) {
+            if store.librarySection == .allScores {
+                TempoSearchField(
+                    prompt: "Search by title, composer, genre, or difficulty",
+                    text: $store.searchText
+                )
+                .frame(maxWidth: TempoTheme.Layout.librarySearchMaxWidth)
+            }
+
+            if store.librarySection == .folders, openFolderID == nil {
+                newFolderButton
+            }
+
+            importScoreButton
+        }
     }
 
-    private var browseControls: some View {
-        HStack(spacing: TempoTheme.Spacing.medium) {
-            TempoSearchField(
-                        prompt: "Search by title, composer, genre, or difficulty",
-                        text: $store.searchText
-            )
-            .frame(maxWidth: TempoTheme.Layout.librarySearchMaxWidth)
-
-            LibrarySortPicker(selection: $store.librarySort)
+    private var newFolderButton: some View {
+        Button {
+            store.showingNewFolder = true
+        } label: {
+            Label("New Folder", systemImage: "folder.badge.plus")
         }
+        .tempoBorderedButton()
+    }
+
+    private var importScoreButton: some View {
+        Button {
+            store.showingImporter = true
+        } label: {
+            Label("Import Score", systemImage: "square.and.arrow.down")
+        }
+        .tempoProminentButton()
     }
 
     private var allScoresView: some View {

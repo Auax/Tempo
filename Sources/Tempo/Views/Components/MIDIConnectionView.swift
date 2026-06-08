@@ -36,10 +36,8 @@ struct MIDIConnectionView: View {
                 Text("Select your MIDI keyboard for low-latency practice.")
                     .foregroundStyle(.secondary)
             }
-            Spacer()
-            Button("Done") { dismiss() }
-                .tempoBorderedButton()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var connectionStatusCard: some View {

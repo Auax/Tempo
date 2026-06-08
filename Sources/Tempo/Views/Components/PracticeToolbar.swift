@@ -31,25 +31,7 @@ struct PracticeToolbar: View {
             .pickerStyle(.menu)
             .frame(width: 128)
 
-            HStack(spacing: 5) {
-                Image(systemName: "metronome")
-                    .foregroundStyle(store.isMetronomeEnabled ? Color.tempoBlue : .secondary)
-                Text("\(store.tempo)")
-                    .font(.system(.body, design: .rounded).monospacedDigit())
-                Stepper("", value: $store.tempo, in: 30...220, step: 2)
-                    .labelsHidden()
-                    .controlSize(.small)
-            }
-            .padding(.horizontal, 10)
-            .frame(height: TempoTheme.Layout.controlHeight)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9))
-
-            Button {
-                store.isMetronomeEnabled.toggle()
-            } label: {
-                Image(systemName: store.isMetronomeEnabled ? "metronome.fill" : "metronome")
-            }
-            .help("Toggle Metronome")
+            TempoControl(store: store)
 
             Menu {
                 Button("Zoom In") {
@@ -103,5 +85,31 @@ struct PracticeToolbar: View {
         .overlay(alignment: .bottom) {
             Divider()
         }
+    }
+}
+
+private struct TempoControl: View {
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Button {
+                store.isMetronomeEnabled.toggle()
+            } label: {
+                Image(systemName: store.isMetronomeEnabled ? "metronome.fill" : "metronome")
+                    .foregroundStyle(store.isMetronomeEnabled ? Color.tempoBlue : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help(store.isMetronomeEnabled ? "Disable Metronome" : "Enable Metronome")
+
+            Text("\(store.tempo)")
+                .font(.system(.body, design: .rounded).monospacedDigit())
+            Stepper("", value: $store.tempo, in: 30...220, step: 2)
+                .labelsHidden()
+                .controlSize(.small)
+        }
+        .padding(.horizontal, 10)
+        .frame(height: TempoTheme.Layout.controlHeight)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9))
     }
 }

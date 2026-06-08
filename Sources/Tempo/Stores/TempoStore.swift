@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class TempoStore {
-    var destination: AppDestination = .library
+    var destination: AppDestination = .home
     var isPracticeWorkspacePresented = false
     var selectedPieceID: Piece.ID?
     var selectedSectionID: PracticeSection.ID?
@@ -25,8 +25,8 @@ final class TempoStore {
     var showingMIDIConnection = false
     var showingSessionReview = false
 
-    var sidebarCollapsed: Bool {
-        didSet { defaults.set(sidebarCollapsed, forKey: Keys.sidebarCollapsed) }
+    var sidebarHidden: Bool {
+        didSet { defaults.set(sidebarHidden, forKey: Keys.sidebarHidden) }
     }
     var inspectorVisible: Bool {
         didSet { defaults.set(inspectorVisible, forKey: Keys.inspectorVisible) }
@@ -55,21 +55,18 @@ final class TempoStore {
     @ObservationIgnored private var hitNotesForTarget: Set<Int> = []
     @ObservationIgnored private var chordGraceStartedAt: Date?
     @ObservationIgnored private var lastTickAt: Date?
+    @ObservationIgnored private var lastMetronomeBeat = -1
 
     private static let chordGracePeriod: TimeInterval = 0.45
 
     init(defaults: UserDefaults = .standard, midiService: MIDIService? = nil) {
         self.defaults = defaults
-        self.sidebarCollapsed = defaults.bool(forKey: Keys.sidebarCollapsed)
+        self.sidebarHidden = defaults.object(forKey: Keys.sidebarHidden) as? Bool
+            ?? defaults.bool(forKey: Keys.sidebarCollapsed)
         self.inspectorVisible = defaults.object(forKey: Keys.inspectorVisible) as? Bool ?? true
         self.pieces = Self.loadPieces(defaults: defaults)
         self.folders = Self.loadFolders(defaults: defaults)
         self.midiService = midiService ?? MIDIService()
-
-        selectedPieceID = pieces.first?.id
-        selectedSectionID = pieces.first?.sections.first?.id
-        isPracticeWorkspacePresented = selectedPieceID != nil
-        loadSelectedScore()
 
         self.midiService.onNote = { [weak self] note, velocity in
             self?.receive(note: note, velocity: velocity)
@@ -81,6 +78,10 @@ final class TempoStore {
 
     var selectedPiece: Piece? {
         pieces.first(where: { $0.id == selectedPieceID })
+    }
+
+    var recentlyPracticedPiece: Piece? {
+        pieces.max(by: { $0.lastPracticed < $1.lastPracticed })
     }
 
     var selectedSection: PracticeSection? {
@@ -210,11 +211,8 @@ final class TempoStore {
 
     var nowPlayingScoreNotes: [String: PianoHand] {
         guard isPlaying, let parsedScore else { return [:] }
-        let epsilon = ScoreTimeline.beatEqualityEpsilon
         let sounding = parsedScore.events.filter {
-            matchesSelectedHand($0)
-                && $0.startBeat <= currentBeat + epsilon
-                && $0.endBeat > currentBeat - epsilon
+            matchesSelectedHand($0) && ScoreTimeline.isSounding($0, at: currentBeat)
         }
         return Dictionary(
             sounding.map { ($0.id, $0.hand) },
@@ -363,6 +361,7 @@ final class TempoStore {
                 resetPracticePosition(from: parsedScore.beat(atMeasure: selectedSection?.startMeasure ?? 1))
             }
             lastTickAt = nil
+            resetMetronomeCursor(before: currentBeat)
             playbackService.resetSyncCursor()
         } else if practiceMode == .guided {
             syncPracticeTargetToPlaybackPosition()
@@ -383,6 +382,7 @@ final class TempoStore {
         lastTickAt = nil
         activeNotes.removeAll()
         activeScoreFeedback.removeAll()
+        resetMetronomeCursor(before: currentBeat)
         syncPlayback()
     }
 
@@ -392,6 +392,7 @@ final class TempoStore {
         resetPracticePosition(from: sectionStart)
         activeNotes.removeAll()
         activeScoreFeedback.removeAll()
+        resetMetronomeCursor(before: currentBeat)
     }
 
     func skipForward() {
@@ -407,6 +408,7 @@ final class TempoStore {
         }
         activeNotes.removeAll()
         activeScoreFeedback.removeAll()
+        resetMetronomeCursor(before: currentBeat)
         syncPlayback()
     }
 
@@ -423,6 +425,7 @@ final class TempoStore {
         }
         activeNotes.removeAll()
         activeScoreFeedback.removeAll()
+        resetMetronomeCursor(before: currentBeat)
         syncPlayback()
     }
 
@@ -459,6 +462,7 @@ final class TempoStore {
             currentBeat = loopStart
             currentMeasure = section.startMeasure
             playbackService.resetSyncCursor()
+            resetMetronomeCursor(before: loopStart)
         } else if currentBeat >= parsedScore.durationBeats {
             isPlaying = false
             lastTickAt = nil
@@ -467,7 +471,20 @@ final class TempoStore {
                 syncPracticeTargetToPlaybackPosition()
             }
         }
+        syncMetronome()
         syncPlayback()
+    }
+
+    private func syncMetronome() {
+        guard isMetronomeEnabled, isPlaying else { return }
+        let beat = Int(floor(currentBeat))
+        guard beat > lastMetronomeBeat else { return }
+        lastMetronomeBeat = beat
+        playbackService.metronomeClick()
+    }
+
+    private func resetMetronomeCursor(before beat: Double) {
+        lastMetronomeBeat = Int(floor(beat)) - 1
     }
 
     func receive(note: Int, velocity: Int = 80, previewSound: Bool = false) {
@@ -728,6 +745,7 @@ final class TempoStore {
     private enum Keys {
         static let pieces = "tempo.pieces"
         static let folders = "tempo.folders"
+        static let sidebarHidden = "tempo.sidebarHidden"
         static let sidebarCollapsed = "tempo.sidebarCollapsed"
         static let inspectorVisible = "tempo.inspectorVisible"
     }
