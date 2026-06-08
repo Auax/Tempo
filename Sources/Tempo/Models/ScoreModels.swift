@@ -18,7 +18,8 @@ struct ScoreNoteEvent: Identifiable, Hashable, Sendable {
     }
 }
 
-struct ParsedScore: Sendable {
+struct ParsedScore: Identifiable, Sendable {
+    let id = UUID()
     let xml: String
     let events: [ScoreNoteEvent]
     let measureStartBeats: [Int: Double]
@@ -32,14 +33,18 @@ struct ParsedScore: Sendable {
     }
 
     var durationBeats: Double {
-        events.map(\.endBeat).max() ?? 0
+        events.reduce(0) { max($0, $1.endBeat) }
     }
 
     func measure(at beat: Double) -> Int {
-        measureStartBeats
-            .filter { $0.value <= beat + 0.0001 }
-            .max { $0.value < $1.value }?
-            .key ?? 1
+        var currentMeasure = 1
+        var currentStart = -Double.infinity
+        for (measure, startBeat) in measureStartBeats
+        where startBeat <= beat + 0.0001 && startBeat > currentStart {
+            currentMeasure = measure
+            currentStart = startBeat
+        }
+        return currentMeasure
     }
 
     func beat(atMeasure measure: Int) -> Double {
@@ -55,10 +60,12 @@ enum ScoreTimeline {
     }
 
     static func activeStartBeat(at beat: Double, in events: [ScoreNoteEvent]) -> Double? {
-        events
-            .filter { $0.startBeat <= beat }
-            .map(\.startBeat)
-            .max()
+        var activeBeat: Double?
+        for event in events {
+            guard event.startBeat <= beat else { break }
+            activeBeat = event.startBeat
+        }
+        return activeBeat
     }
 
     static func isSounding(_ event: ScoreNoteEvent, at beat: Double) -> Bool {
@@ -66,16 +73,10 @@ enum ScoreTimeline {
     }
 
     static func nextStartBeat(after beat: Double, in events: [ScoreNoteEvent]) -> Double? {
-        events
-            .filter { $0.startBeat > beat + beatEqualityEpsilon }
-            .map(\.startBeat)
-            .min()
+        events.first { $0.startBeat > beat + beatEqualityEpsilon }?.startBeat
     }
 
     static func firstStartBeat(from beat: Double, in events: [ScoreNoteEvent]) -> Double? {
-        events
-            .filter { $0.startBeat >= beat - beatEqualityEpsilon }
-            .map(\.startBeat)
-            .min()
+        events.first { $0.startBeat >= beat - beatEqualityEpsilon }?.startBeat
     }
 }

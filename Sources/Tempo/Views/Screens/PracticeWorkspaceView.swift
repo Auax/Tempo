@@ -6,8 +6,6 @@ struct PracticeWorkspaceView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            PracticeToolbar(store: store)
-
             GeometryReader { proxy in
                 ScrollView([.horizontal, .vertical]) {
                     VerovioScoreView(
@@ -16,7 +14,6 @@ struct PracticeWorkspaceView: View {
                         currentMeasure: store.currentMeasure,
                         zoom: store.scoreZoom,
                         expectedNotes: store.expectedScoreNotes,
-                        playingNotes: store.nowPlayingScoreNotes,
                         feedback: store.activeScoreFeedback
                     )
                     .frame(

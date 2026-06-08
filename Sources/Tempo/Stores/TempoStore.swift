@@ -8,8 +8,15 @@ final class TempoStore {
     var isPracticeWorkspacePresented = false
     var selectedPieceID: Piece.ID?
     var selectedSectionID: PracticeSection.ID?
-    var practiceMode: PracticeMode = .guided
-    var handSelection: HandSelection = .both
+    var practiceMode: PracticeMode = .guided {
+        didSet { refreshPlaybackFrame(force: true) }
+    }
+    var handSelection: HandSelection = .both {
+        didSet {
+            rebuildSelectableEvents()
+            refreshPlaybackFrame(force: true)
+        }
+    }
 
     var isPlaying = false
     var isMetronomeEnabled = true
@@ -45,6 +52,8 @@ final class TempoStore {
     var selectedGenres: Set<String> = []
     var parsedScore: ParsedScore?
     var scoreError: String?
+    private(set) var expectedNotesByHand: [Int: PianoHand] = [:]
+    private(set) var expectedScoreNotes: [String: PianoHand] = [:]
 
     let midiService: MIDIService
 
@@ -56,8 +65,14 @@ final class TempoStore {
     @ObservationIgnored private var chordGraceStartedAt: Date?
     @ObservationIgnored private var lastTickAt: Date?
     @ObservationIgnored private var lastMetronomeBeat = -1
+    @ObservationIgnored private var selectableEvents: [ScoreNoteEvent] = []
+    @ObservationIgnored private var expectedEventsCache: [ScoreNoteEvent] = []
+    @ObservationIgnored private var expectedStartBeatCache: Double?
+    @ObservationIgnored private var pendingPracticedSeconds = 0.0
+    @ObservationIgnored private var sessionTimeLastTick: Date?
 
     private static let chordGracePeriod: TimeInterval = 0.45
+    private static let practiceTimePublishInterval: TimeInterval = 0.2
 
     init(defaults: UserDefaults = .standard, midiService: MIDIService? = nil) {
         self.defaults = defaults
@@ -180,44 +195,7 @@ final class TempoStore {
     }
 
     var expectedEvents: [ScoreNoteEvent] {
-        guard let parsedScore else { return [] }
-        let selectable = parsedScore.events.filter(matchesSelectedHand)
-        guard !selectable.isEmpty else { return [] }
-
-        let positionBeat: Double
-        switch practiceMode {
-        case .guided where !isPlaying:
-            positionBeat = targetBeat
-        case .guided, .section, .performance:
-            guard let activeStart = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectable) else {
-                return []
-            }
-            positionBeat = activeStart
-        }
-
-        return ScoreTimeline.events(atStartBeat: positionBeat, in: selectable)
-    }
-
-    var expectedNotesByHand: [Int: PianoHand] {
-        Dictionary(
-            expectedEvents.map { ($0.midiNote, $0.hand) },
-            uniquingKeysWith: { first, _ in first }
-        )
-    }
-
-    var expectedScoreNotes: [String: PianoHand] {
-        Dictionary(uniqueKeysWithValues: expectedEvents.map { ($0.id, $0.hand) })
-    }
-
-    var nowPlayingScoreNotes: [String: PianoHand] {
-        guard isPlaying, let parsedScore else { return [:] }
-        let sounding = parsedScore.events.filter {
-            matchesSelectedHand($0) && ScoreTimeline.isSounding($0, at: currentBeat)
-        }
-        return Dictionary(
-            sounding.map { ($0.id, $0.hand) },
-            uniquingKeysWith: { first, _ in first }
-        )
+        expectedEventsCache
     }
 
     var hasSessionData: Bool {
@@ -233,6 +211,8 @@ final class TempoStore {
             persistPieces()
         }
         selectedSectionID = piece.sections.first?.id
+        pendingPracticedSeconds = 0
+        sessionTimeLastTick = nil
         metrics.reset()
         loadSelectedScore()
         resetPracticePosition(from: parsedScore?.beat(atMeasure: selectedSection?.startMeasure ?? 1) ?? 0)
@@ -243,6 +223,7 @@ final class TempoStore {
     }
 
     func openDestination(_ destination: AppDestination) {
+        stopSessionTimer()
         self.destination = destination
         isPracticeWorkspacePresented = false
     }
@@ -263,6 +244,35 @@ final class TempoStore {
         guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else { return }
         pieces[index].isFavorite.toggle()
         persistPieces()
+    }
+
+    func deletePiece(_ pieceID: Piece.ID) {
+        guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else { return }
+        let piece = pieces.remove(at: index)
+
+        if selectedPieceID == pieceID {
+            playbackService.stopAll()
+            isPlaying = false
+            stopSessionTimer()
+            selectedPieceID = nil
+            selectedSectionID = nil
+            parsedScore = nil
+            scoreError = nil
+            currentBeat = 0
+            currentMeasure = 1
+            isPracticeWorkspacePresented = false
+            clearTargetFeedback()
+            rebuildSelectableEvents()
+            refreshPlaybackFrame(force: true)
+        }
+
+        persistPieces()
+
+        if let scorePath = piece.scorePath {
+            try? FileManager.default.removeItem(
+                at: URL(fileURLWithPath: scorePath)
+            )
+        }
     }
 
     func prepareImport(_ url: URL) {
@@ -350,24 +360,57 @@ final class TempoStore {
 
     func playPause() {
         guard let parsedScore else { return }
-        isPlaying.toggle()
 
         if isPlaying {
+            isPlaying = false
+            publishPendingPracticeTime()
             if practiceMode == .guided {
-                currentBeat = targetBeat
-                currentMeasure = parsedScore.measure(at: targetBeat)
+                syncPracticeTargetToPlaybackPosition()
             }
-            if currentBeat >= parsedScore.durationBeats {
-                resetPracticePosition(from: parsedScore.beat(atMeasure: selectedSection?.startMeasure ?? 1))
+        } else {
+            let sectionStart = parsedScore.beat(
+                atMeasure: selectedSection?.startMeasure ?? 1
+            )
+            let startBeat = Self.playbackStartBeat(
+                currentBeat: currentBeat,
+                targetBeat: targetBeat,
+                durationBeats: parsedScore.durationBeats,
+                sectionStartBeat: sectionStart,
+                isGuided: practiceMode == .guided
+            )
+
+            if currentBeat >= parsedScore.durationBeats - ScoreTimeline.beatEqualityEpsilon {
+                resetPracticePosition(from: sectionStart)
+                activeNotes.removeAll()
+                activeScoreFeedback.removeAll()
+            } else {
+                currentBeat = startBeat
+                currentMeasure = parsedScore.measure(at: startBeat)
+            }
+
+            isPlaying = true
+            if practiceMode == .guided {
+                targetBeat = currentBeat
             }
             lastTickAt = nil
             resetMetronomeCursor(before: currentBeat)
             playbackService.resetSyncCursor()
-        } else if practiceMode == .guided {
-            syncPracticeTargetToPlaybackPosition()
         }
 
         syncPlayback()
+    }
+
+    nonisolated static func playbackStartBeat(
+        currentBeat: Double,
+        targetBeat: Double,
+        durationBeats: Double,
+        sectionStartBeat: Double,
+        isGuided: Bool
+    ) -> Double {
+        if currentBeat >= durationBeats - ScoreTimeline.beatEqualityEpsilon {
+            return sectionStartBeat
+        }
+        return isGuided ? targetBeat : currentBeat
     }
 
     func goToStart() {
@@ -430,6 +473,10 @@ final class TempoStore {
     }
 
     func tick(interval: TimeInterval = 0.02) {
+        if isPracticeWorkspacePresented {
+            updateSessionDuration(interval: interval)
+        }
+
         if practiceMode == .guided, !isPlaying {
             checkChordGraceTimeout()
             lastTickAt = nil
@@ -443,6 +490,8 @@ final class TempoStore {
         guard let parsedScore else {
             isPlaying = false
             lastTickAt = nil
+            publishPendingPracticeTime()
+            refreshPlaybackFrame(force: true)
             return
         }
 
@@ -453,9 +502,11 @@ final class TempoStore {
         lastTickAt = now
         let delta = min(max(elapsed, 0), 0.25)
 
-        metrics.practicedSeconds += delta
         currentBeat += delta * Double(tempo) / 60
-        currentMeasure = parsedScore.measure(at: currentBeat)
+        let measure = parsedScore.measure(at: currentBeat)
+        if measure != currentMeasure {
+            currentMeasure = measure
+        }
 
         if isLoopEnabled, let section = selectedSection, currentMeasure > section.endMeasure {
             let loopStart = parsedScore.beat(atMeasure: section.startMeasure)
@@ -466,6 +517,7 @@ final class TempoStore {
         } else if currentBeat >= parsedScore.durationBeats {
             isPlaying = false
             lastTickAt = nil
+            publishPendingPracticeTime()
             playbackService.stopAll()
             if practiceMode == .guided {
                 syncPracticeTargetToPlaybackPosition()
@@ -532,6 +584,8 @@ final class TempoStore {
 
     func resetSession() {
         isPlaying = false
+        pendingPracticedSeconds = 0
+        sessionTimeLastTick = nil
         metrics.reset()
         restartSection()
     }
@@ -552,6 +606,8 @@ final class TempoStore {
 
     private func loadSelectedScore() {
         parsedScore = nil
+        rebuildSelectableEvents()
+        refreshPlaybackFrame(force: true)
         scoreError = nil
         guard let path = selectedPiece?.scorePath else {
             scoreError = "Import a MusicXML score to begin."
@@ -561,6 +617,7 @@ final class TempoStore {
         do {
             let parsed = try MusicXMLScoreParser.parse(url: URL(fileURLWithPath: path))
             parsedScore = parsed
+            rebuildSelectableEvents()
             if let parsedTempo = parsed.tempo {
                 tempo = min(max(parsedTempo, 30), 180)
             }
@@ -600,11 +657,11 @@ final class TempoStore {
             at: currentBeat,
             isPlaying: isPlaying
         )
+        refreshPlaybackFrame()
     }
 
     private func resetPracticePosition(from beat: Double) {
-        let selectable = parsedScore?.events.filter(matchesSelectedHand) ?? []
-        let startBeat = ScoreTimeline.firstStartBeat(from: beat, in: selectable) ?? beat
+        let startBeat = ScoreTimeline.firstStartBeat(from: beat, in: selectableEvents) ?? beat
         targetBeat = startBeat
         currentBeat = startBeat
         currentMeasure = parsedScore?.measure(at: startBeat) ?? 1
@@ -612,6 +669,7 @@ final class TempoStore {
         chordGraceStartedAt = nil
         beatAccumulator = 0
         playbackService.resetSyncCursor()
+        refreshPlaybackFrame(force: true)
     }
 
     private func registerGuidedHit(note: Int) {
@@ -631,11 +689,11 @@ final class TempoStore {
 
     private func advanceToNextTarget() {
         guard let parsedScore else { return }
-        let selectable = parsedScore.events.filter(matchesSelectedHand)
-        guard let nextBeat = ScoreTimeline.nextStartBeat(after: targetBeat, in: selectable) else {
+        guard let nextBeat = ScoreTimeline.nextStartBeat(after: targetBeat, in: selectableEvents) else {
             isPlaying = false
             playbackService.stopAll()
             clearTargetFeedback()
+            refreshPlaybackFrame(force: true)
             return
         }
 
@@ -655,16 +713,74 @@ final class TempoStore {
     }
 
     private func syncPracticeTargetToPlaybackPosition() {
-        guard practiceMode == .guided, let parsedScore else { return }
-        let selectable = parsedScore.events.filter(matchesSelectedHand)
-        if let activeStart = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectable) {
+        guard practiceMode == .guided else { return }
+        if let activeStart = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectableEvents) {
             targetBeat = activeStart
-        } else if let nextBeat = ScoreTimeline.firstStartBeat(from: currentBeat, in: selectable) {
+        } else if let nextBeat = ScoreTimeline.firstStartBeat(from: currentBeat, in: selectableEvents) {
             targetBeat = nextBeat
         } else {
             targetBeat = currentBeat
         }
         clearTargetFeedback()
+        refreshPlaybackFrame(force: true)
+    }
+
+    private func rebuildSelectableEvents() {
+        selectableEvents = parsedScore?.events.filter(matchesSelectedHand) ?? []
+    }
+
+    private func refreshPlaybackFrame(force: Bool = false) {
+        let nextExpectedEvents: [ScoreNoteEvent]
+        let positionBeat: Double?
+
+        switch practiceMode {
+        case .guided where !isPlaying:
+            positionBeat = targetBeat
+        case .guided, .section, .performance:
+            positionBeat = ScoreTimeline.activeStartBeat(at: currentBeat, in: selectableEvents)
+        }
+
+        if force || positionBeat != expectedStartBeatCache {
+            expectedStartBeatCache = positionBeat
+            if let positionBeat {
+                nextExpectedEvents = ScoreTimeline.events(
+                    atStartBeat: positionBeat,
+                    in: selectableEvents
+                )
+            } else {
+                nextExpectedEvents = []
+            }
+            expectedEventsCache = nextExpectedEvents
+            expectedNotesByHand = Dictionary(
+                nextExpectedEvents.map { ($0.midiNote, $0.hand) },
+                uniquingKeysWith: { first, _ in first }
+            )
+            expectedScoreNotes = Dictionary(
+                uniqueKeysWithValues: nextExpectedEvents.map { ($0.id, $0.hand) }
+            )
+        }
+    }
+
+    private func updateSessionDuration(interval: TimeInterval) {
+        let now = Date()
+        let elapsed = sessionTimeLastTick.map { now.timeIntervalSince($0) } ?? interval
+        sessionTimeLastTick = now
+        let delta = min(max(elapsed, 0), 0.25)
+        pendingPracticedSeconds += delta
+        if pendingPracticedSeconds >= Self.practiceTimePublishInterval {
+            publishPendingPracticeTime()
+        }
+    }
+
+    private func stopSessionTimer() {
+        publishPendingPracticeTime()
+        sessionTimeLastTick = nil
+    }
+
+    private func publishPendingPracticeTime() {
+        guard pendingPracticedSeconds > 0 else { return }
+        metrics.practicedSeconds += pendingPracticedSeconds
+        pendingPracticedSeconds = 0
     }
 
     private func checkChordGraceTimeout() {

@@ -5,40 +5,42 @@ struct LibraryView: View {
     @State private var openFolderID: ScoreFolder.ID?
     @State private var openComposer: String?
 
+    private var libraryContentPadding: CGFloat { TempoTheme.Spacing.xLarge }
+
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: TempoTheme.Spacing.large) {
+            VStack(spacing: TempoTheme.Spacing.xxLarge) {
                 libraryHeader
                 sectionBar
             }
-            Divider()
+            .padding(.horizontal, libraryContentPadding)
+            .padding(.top, libraryContentPadding)
+            .padding(.bottom, TempoTheme.Spacing.large)
 
-            switch store.librarySection {
-            case .allScores:
-                allScoresView
-            case .folders:
-                foldersView
-            case .composers:
-                composersView
+            Group {
+                switch store.librarySection {
+                case .allScores:
+                    allScoresView
+                case .folders:
+                    foldersView
+                case .composers:
+                    composersView
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.primary.opacity(0.025))
     }
 
     private var libraryHeader: some View {
-        HStack(spacing: TempoTheme.Spacing.xLarge) {
-            VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
-                Text("Library")
-                    .font(.largeTitle.weight(.semibold))
-                Text("Manage and organize your scores")
-                    .foregroundStyle(.secondary)
-            }
+        VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+            Text("Library")
+                .font(.largeTitle.weight(.semibold))
+            Text("Manage and organize your scores")
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, TempoTheme.Spacing.xLarge)
-        .padding(.top, TempoTheme.Spacing.xLarge)
-        .padding(.bottom, TempoTheme.Spacing.large)
     }
 
     private var sectionBar: some View {
@@ -85,7 +87,6 @@ struct LibraryView: View {
 
             sectionBarActions
         }
-        .padding(.horizontal, TempoTheme.Spacing.xxLarge)
         .padding(.bottom, TempoTheme.Spacing.medium)
     }
 
@@ -127,12 +128,12 @@ struct LibraryView: View {
 
     private var allScoresView: some View {
         HStack(alignment: .top, spacing: 0) {
+            scoreResults(for: store.filteredPieces)
+
             filters
                 .frame(width: TempoTheme.Layout.libraryFilterWidth)
-            Divider()
-            scoreResults(for: store.filteredPieces)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var filters: some View {
@@ -229,13 +230,12 @@ struct LibraryView: View {
                 .tempoProminentButton()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.top, TempoTheme.Spacing.xLarge)
         } else {
             ScrollView {
                 libraryScoresGrid(pieces)
             }
             .padding(TempoTheme.Spacing.xLarge)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
@@ -323,9 +323,9 @@ struct LibraryView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, TempoTheme.Spacing.xxLarge)
+                .padding(.horizontal, TempoTheme.Spacing.xLarge)
                 .padding(.top, TempoTheme.Spacing.xLarge)
-                .padding(.bottom, TempoTheme.Spacing.xxLarge)
+                .padding(.bottom, TempoTheme.Spacing.xLarge)
             }
         }
     }
@@ -389,9 +389,9 @@ struct LibraryView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, TempoTheme.Spacing.xxLarge)
+                .padding(.horizontal, TempoTheme.Spacing.xLarge)
                 .padding(.top, TempoTheme.Spacing.xLarge)
-                .padding(.bottom, TempoTheme.Spacing.xxLarge)
+                .padding(.bottom, TempoTheme.Spacing.xLarge)
             }
         }
     }
@@ -432,7 +432,7 @@ struct LibraryView: View {
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, TempoTheme.Spacing.xxLarge)
+            .padding(.horizontal, TempoTheme.Spacing.xLarge)
             .padding(.top, TempoTheme.Spacing.xLarge)
 
             if pieces.isEmpty {
@@ -451,6 +451,7 @@ struct LibraryView: View {
                 .padding(.bottom, TempoTheme.Spacing.xLarge)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var filteredFolders: [ScoreFolder] {

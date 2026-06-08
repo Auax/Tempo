@@ -10,12 +10,17 @@ struct VerovioScoreView: View {
     let currentMeasure: Int
     let zoom: Double
     let expectedNotes: [String: PianoHand]
-    let playingNotes: [String: PianoHand]
     let feedback: [String: NoteFeedback]
 
     @State private var svg = ""
     @State private var renderError: String?
-    @State private var verovioIDs: [String: String] = [:]
+    @State private var documentID = 0
+
+    private struct RenderKey: Hashable {
+        let scoreID: ParsedScore.ID?
+        let widthBucket: Int
+        let zoomStep: Int
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -44,10 +49,10 @@ struct VerovioScoreView: View {
                 } else {
                     SVGScoreWebView(
                         svg: svg,
+                        documentID: documentID,
                         currentMeasure: currentMeasure,
-                        expectedNotes: translatedExpectedNotes,
-                        playingNotes: translatedPlayingNotes,
-                        feedback: translatedFeedback
+                        expectedNotes: expectedNotes,
+                        feedback: feedback
                     )
                 }
             }
@@ -61,38 +66,17 @@ struct VerovioScoreView: View {
         .accessibilityValue("Current measure \(currentMeasure)")
     }
 
-    private func renderKey(width: CGFloat) -> String {
-        "\(score?.xml.hashValue ?? 0)-\(Int(width / 80))-\(Int(zoom * 10))"
-    }
-
-    private var translatedExpectedNotes: [String: PianoHand] {
-        Dictionary(
-            uniqueKeysWithValues: expectedNotes.compactMap { sourceID, hand in
-                verovioIDs[sourceID].map { ($0, hand) }
-            }
-        )
-    }
-
-    private var translatedPlayingNotes: [String: PianoHand] {
-        Dictionary(
-            uniqueKeysWithValues: playingNotes.compactMap { sourceID, hand in
-                verovioIDs[sourceID].map { ($0, hand) }
-            }
-        )
-    }
-
-    private var translatedFeedback: [String: NoteFeedback] {
-        Dictionary(
-            uniqueKeysWithValues: feedback.compactMap { sourceID, noteFeedback in
-                verovioIDs[sourceID].map { ($0, noteFeedback) }
-            }
+    private func renderKey(width: CGFloat) -> RenderKey {
+        RenderKey(
+            scoreID: score?.id,
+            widthBucket: Int(width / 80),
+            zoomStep: Int(zoom * 10)
         )
     }
 
     @MainActor
     private func render(width: CGFloat) async {
         svg = ""
-        verovioIDs = [:]
         renderError = nil
         guard let score else { return }
         guard let resourcePath = VerovioResources.bundle.url(
@@ -147,108 +131,31 @@ struct VerovioScoreView: View {
                     return RenderResult.failure("Verovio returned an empty score.")
                 }
                 let renderedSVG = renderedPages.joined(separator: "\n")
-                let timemap = toolkit.renderToTimemap("{\"includeRests\": false}")
-                let idMap = Self.makeVerovioIDMap(
-                    toolkit: toolkit,
-                    timemap: timemap,
-                    score: score
-                )
-                return RenderResult.success(renderedSVG, idMap)
+                return RenderResult.success(renderedSVG)
             }
         }.value
 
         switch result {
-        case .success(let renderedSVG, let idMap):
+        case .success(let renderedSVG):
+            documentID &+= 1
             svg = renderedSVG
-            verovioIDs = idMap
         case .failure(let message):
             renderError = message
         }
     }
 
     private enum RenderResult: Sendable {
-        case success(String, [String: String])
+        case success(String)
         case failure(String)
-    }
-
-    nonisolated static func makeVerovioIDMap(
-        toolkit: VerovioToolkit,
-        timemap: String,
-        score: ParsedScore
-    ) -> [String: String] {
-        struct RenderedNote {
-            let id: String
-            let pitch: Int
-            let startBeat: Double
-        }
-
-        guard
-            let timemapData = timemap.data(using: .utf8),
-            let entries = try? JSONSerialization.jsonObject(with: timemapData)
-                as? [[String: Any]]
-        else {
-            return [:]
-        }
-
-        var renderedNotes: [RenderedNote] = []
-        for entry in entries {
-            guard
-                let qstamp = (entry["qstamp"] as? NSNumber)?.doubleValue,
-                let noteIDs = entry["on"] as? [String]
-            else {
-                continue
-            }
-
-            for noteID in noteIDs {
-                guard
-                    let midiData = toolkit.getMIDIValuesForElement(noteID).data(using: .utf8),
-                    let midiJSON = try? JSONSerialization.jsonObject(with: midiData)
-                        as? [String: Any],
-                    let pitch = (midiJSON["pitch"] as? NSNumber)?.intValue
-                else {
-                    continue
-                }
-                renderedNotes.append(
-                    RenderedNote(id: noteID, pitch: pitch, startBeat: qstamp)
-                )
-            }
-        }
-
-        var availableByPitch = Dictionary(grouping: renderedNotes, by: \.pitch)
-        var result: [String: String] = [:]
-
-        for event in score.events {
-            guard var candidates = availableByPitch[event.midiNote], !candidates.isEmpty else {
-                continue
-            }
-
-            // Verovio assigns grace notes special qstamps, while Tempo gives them
-            // short synthetic playback slots. Match the closest unused note of the
-            // same pitch so regular notes remain exact and grace runs remain ordered.
-            let bestIndex = candidates.indices.min {
-                let lhsDistance = abs(candidates[$0].startBeat - event.startBeat)
-                let rhsDistance = abs(candidates[$1].startBeat - event.startBeat)
-                if lhsDistance != rhsDistance {
-                    return lhsDistance < rhsDistance
-                }
-                return candidates[$0].startBeat < candidates[$1].startBeat
-            }
-            guard let bestIndex else { continue }
-
-            result[event.id] = candidates.remove(at: bestIndex).id
-            availableByPitch[event.midiNote] = candidates
-        }
-
-        return result
     }
 
 }
 
 private struct SVGScoreWebView: NSViewRepresentable {
     let svg: String
+    let documentID: Int
     let currentMeasure: Int
     let expectedNotes: [String: PianoHand]
-    let playingNotes: [String: PianoHand]
     let feedback: [String: NoteFeedback]
 
     func makeCoordinator() -> Coordinator {
@@ -271,12 +178,10 @@ private struct SVGScoreWebView: NSViewRepresentable {
     func updateNSView(_ webView: WKWebView, context: Context) {
         context.coordinator.currentMeasure = currentMeasure
         context.coordinator.expectedNotes = expectedNotes
-        context.coordinator.playingNotes = playingNotes
         context.coordinator.feedback = feedback
 
-        if context.coordinator.svgHash != svg.hashValue {
-            context.coordinator.svgHash = svg.hashValue
-            context.coordinator.lastHighlightHash = 0
+        if context.coordinator.documentID != documentID {
+            context.coordinator.prepareForDocument(documentID)
             context.coordinator.lastScrolledMeasure = 0
             webView.loadHTMLString(Self.html(svg: svg), baseURL: nil)
         } else {
@@ -326,48 +231,56 @@ private struct SVGScoreWebView: NSViewRepresentable {
                   'tempo-correct',
                   'tempo-incorrect'
                 ];
-                const animatedNodes = new Set();
+                const previousNodes = window.tempoHighlightedNodes || new Set();
+                previousNodes.forEach(function(node) {
+                  node.classList.remove(...highlightClasses);
+                  node.removeAttribute('data-tempo-highlight');
+                });
+
+                const highlightedNodes = new Set();
+                const nodeCache = window.tempoHighlightNodeCache || new Map();
+                window.tempoHighlightNodeCache = nodeCache;
+
+                function nodesForID(id) {
+                  if (nodeCache.has(id)) { return nodeCache.get(id); }
+                  const nodes = [];
+                  const note = document.querySelector('svg [data-id="' + id + '"]');
+                  if (note) {
+                    const chord = note.parentElement?.matches('[data-class="chord"]')
+                      ? note.parentElement
+                      : null;
+                    nodes.push(chord || note);
+                    document.querySelectorAll(
+                      'svg [data-class="lineDash"][data-related~="#' + id + '"]'
+                    ).forEach(function(ledgerLine) {
+                      nodes.push(ledgerLine);
+                    });
+                  }
+                  nodeCache.set(id, nodes);
+                  return nodes;
+                }
+
                 function applyHighlight(node, className) {
                   if (!node) { return; }
                   node.classList.remove(...highlightClasses);
                   node.classList.add(className);
                   node.setAttribute('data-tempo-highlight', '1');
-                  animatedNodes.add(node);
+                  highlightedNodes.add(node);
                 }
-                document.querySelectorAll('[data-tempo-highlight]').forEach(function(node) {
-                  node.classList.remove(...highlightClasses);
-                  node.removeAttribute('data-tempo-highlight');
-                });
+
                 Object.entries(payload).forEach(function(entry) {
-                  const node = document.querySelector('svg [data-id="' + entry[0] + '"]');
-                  if (node) {
-                    const chord = node.parentElement?.matches('[data-class="chord"]')
-                      ? node.parentElement
-                      : null;
-                    applyHighlight(chord || node, entry[1]);
-
-                    document.querySelectorAll(
-                      'svg [data-class="lineDash"][data-related~="#' + entry[0] + '"]'
-                    ).forEach(function(ledgerLine) {
-                      applyHighlight(ledgerLine, entry[1]);
-                    });
-                  }
-                });
-
-                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                  animatedNodes.forEach(function(node) {
-                    node.animate(
-                      [{ opacity: 0.68 }, { opacity: 1 }],
-                      { duration: 150, easing: 'ease-out' }
-                    );
+                  nodesForID(entry[0]).forEach(function(node) {
+                    applyHighlight(node, entry[1]);
                   });
-                }
+                });
+                window.tempoHighlightedNodes = highlightedNodes;
               }
 
               function tempoScrollToSystem(measureNumber, candidateIDs, animated) {
                 let measure = null;
                 for (const id of candidateIDs) {
-                  const note = document.querySelector('svg [data-id="' + id + '"]');
+                  const note = (window.tempoHighlightNodeCache?.get(id) || [])[0]
+                    || document.querySelector('svg [data-id="' + id + '"]');
                   if (note) {
                     measure = note.closest('[data-class="measure"]');
                     break;
@@ -404,34 +317,43 @@ private struct SVGScoreWebView: NSViewRepresentable {
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
-        var svgHash = 0
-        var lastHighlightHash = 0
+        private struct PendingHighlight {
+            let documentID: Int
+            let script: String
+        }
+
+        var documentID = -1
+        var lastHighlightClasses: [String: String] = [:]
         var lastScrolledMeasure = 0
         var currentMeasure = 1
         var expectedNotes: [String: PianoHand] = [:]
-        var playingNotes: [String: PianoHand] = [:]
         var feedback: [String: NoteFeedback] = [:]
+        private var pendingHighlight: PendingHighlight?
+        private var isApplyingHighlight = false
+
+        func prepareForDocument(_ documentID: Int) {
+            self.documentID = documentID
+            lastHighlightClasses = [:]
+            pendingHighlight = nil
+            isApplyingHighlight = false
+        }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            lastHighlightHash = 0
+            lastHighlightClasses = [:]
             applyHighlights(to: webView)
             scrollToCurrentMeasure(in: webView, animated: false)
         }
 
         func applyHighlights(to webView: WKWebView) {
             var classes = expectedNotes.mapValues { _ in "tempo-active" }
-            for id in playingNotes.keys {
-                classes[id] = "tempo-active"
-            }
             for (id, noteFeedback) in feedback {
                 classes[id] = noteFeedback == .correct
                     ? "tempo-correct"
                     : "tempo-incorrect"
             }
 
-            let hash = classes.hashValue
-            guard hash != lastHighlightHash else { return }
-            lastHighlightHash = hash
+            guard classes != lastHighlightClasses else { return }
+            lastHighlightClasses = classes
 
             guard
                 let data = try? JSONSerialization.data(withJSONObject: classes),
@@ -439,14 +361,33 @@ private struct SVGScoreWebView: NSViewRepresentable {
             else {
                 return
             }
-            webView.evaluateJavaScript("tempoHighlight(\(json));")
+            pendingHighlight = PendingHighlight(
+                documentID: documentID,
+                script: "tempoHighlight(\(json));"
+            )
+            applyPendingHighlight(to: webView)
+        }
+
+        private func applyPendingHighlight(to webView: WKWebView) {
+            guard !isApplyingHighlight, let pendingHighlight else { return }
+            self.pendingHighlight = nil
+            isApplyingHighlight = true
+
+            webView.evaluateJavaScript(pendingHighlight.script) { [weak self, weak webView] _, _ in
+                guard let self else { return }
+                guard pendingHighlight.documentID == self.documentID else { return }
+                self.isApplyingHighlight = false
+                if let webView {
+                    self.applyPendingHighlight(to: webView)
+                }
+            }
         }
 
         func scrollToCurrentMeasure(in webView: WKWebView, animated: Bool = true) {
             guard currentMeasure != lastScrolledMeasure else { return }
             lastScrolledMeasure = currentMeasure
 
-            let candidateIDs = Array(playingNotes.keys) + Array(expectedNotes.keys)
+            let candidateIDs = Array(expectedNotes.keys)
             guard
                 let data = try? JSONSerialization.data(withJSONObject: candidateIDs),
                 let json = String(data: data, encoding: .utf8)

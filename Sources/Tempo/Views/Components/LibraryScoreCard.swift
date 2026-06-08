@@ -59,6 +59,7 @@ struct LibraryScoreCard: View {
 struct LibraryPieceMenu: View {
     let piece: Piece
     @Bindable var store: TempoStore
+    @State private var isConfirmingDeletion = false
 
     var body: some View {
         Menu {
@@ -86,6 +87,14 @@ struct LibraryPieceMenu: View {
                     }
                 }
             }
+
+            Divider()
+
+            Button(role: .destructive) {
+                isConfirmingDeletion = true
+            } label: {
+                Label("Delete Score", systemImage: "trash")
+            }
         } label: {
             Image(systemName: "ellipsis")
                 .foregroundStyle(.secondary)
@@ -93,5 +102,16 @@ struct LibraryPieceMenu: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
+        .alert(
+            "Delete “\(piece.title)”?",
+            isPresented: $isConfirmingDeletion
+        ) {
+            Button("Delete", role: .destructive) {
+                store.deletePiece(piece.id)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes the score and its imported file. This action cannot be undone.")
+        }
     }
 }

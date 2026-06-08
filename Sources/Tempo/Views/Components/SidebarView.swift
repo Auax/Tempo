@@ -110,44 +110,47 @@ struct SidebarView: View {
             store.midiService.refreshSources()
             store.showingMIDIConnection = true
         } label: {
-            HStack(spacing: 11) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "pianokeys")
-                        .font(.system(size: 17, weight: .regular))
-                        .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
+            Group {
+                if compact {
+                    connectionIcon
+                        .frame(maxWidth: .infinity)
+                        .frame(height: TempoTheme.Layout.sidebarItemHeight)
+                } else {
+                    HStack(spacing: 11) {
+                        connectionIcon
 
-                    Circle()
-                        .fill(store.midiService.isConnected ? Color.tempoGreen : .secondary)
-                        .frame(width: 7, height: 7)
-                        .offset(x: 3, y: -3)
-                }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(store.midiService.isConnected ? "Piano Connected" : "Connect Piano")
+                                .font(.caption.weight(.medium))
+                            Text(store.midiService.activeSourceName ?? "No MIDI input detected")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(store.midiService.isConnected ? "Piano Connected" : "Connect Piano")
-                        .font(.caption.weight(.medium))
-                    Text(store.midiService.activeSourceName ?? "No MIDI input detected")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: compact ? 0 : .infinity, alignment: .leading)
-                .opacity(compact ? 0 : 1)
-                .clipped()
-
-                if !compact {
-                    Spacer(minLength: 0)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.sidebarItemHeight)
+                    .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
                 }
             }
-            .frame(
-                maxWidth: .infinity,
-                minHeight: TempoTheme.Layout.sidebarItemHeight,
-                alignment: .leading
-            )
-            .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(store.midiService.activeSourceName ?? "Connect a MIDI piano")
+    }
+
+    private var connectionIcon: some View {
+        ZStack(alignment: .topTrailing) {
+            Image(systemName: "pianokeys")
+                .font(.system(size: 17, weight: .regular))
+                .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
+
+            Circle()
+                .fill(store.midiService.isConnected ? Color.tempoGreen : .secondary)
+                .frame(width: 7, height: 7)
+                .offset(x: 3, y: -3)
+        }
     }
 
     private func sectionLabel(_ text: String) -> some View {
@@ -166,28 +169,28 @@ private struct SidebarItem: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 11) {
-                Image(systemName: destination.symbol)
-                    .font(.system(size: 17, weight: .regular))
-                    .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
+            Group {
+                if compact {
+                    Image(systemName: destination.symbol)
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: TempoTheme.Layout.sidebarItemHeight)
+                } else {
+                    HStack(spacing: 11) {
+                        Image(systemName: destination.symbol)
+                            .font(.system(size: 17, weight: .regular))
+                            .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
 
-                Text(destination.title)
-                    .font(.system(size: 16, weight: selected ? .medium : .regular))
-                    .lineLimit(1)
-                    .frame(maxWidth: compact ? 0 : .infinity, alignment: .leading)
-                    .opacity(compact ? 0 : 1)
-                    .clipped()
+                        Text(destination.title)
+                            .font(.system(size: 16, weight: selected ? .medium : .regular))
+                            .lineLimit(1)
 
-                if !compact {
-                    Spacer(minLength: 0)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.sidebarItemHeight)
+                    .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
                 }
             }
-            .frame(
-                maxWidth: .infinity,
-                minHeight: TempoTheme.Layout.sidebarItemHeight,
-                alignment: .leading
-            )
-            .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
             .foregroundStyle(selected ? .primary : .secondary)
             .background(
                 selected ? Color.primary.opacity(0.09) : .clear,

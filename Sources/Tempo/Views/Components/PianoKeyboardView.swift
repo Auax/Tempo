@@ -3,28 +3,29 @@ import SwiftUI
 struct PianoKeyboardView: View {
     @Bindable var store: TempoStore
 
-    private let allNotes = Array(21...108)
-
-    private var whiteNotes: [Int] {
-        allNotes.filter { !Self.isBlack($0) }
-    }
-
-    private var blackNotes: [Int] {
-        allNotes.filter(Self.isBlack)
-    }
+    private static let allNotes = Array(21...108)
+    private static let whiteNotes = allNotes.filter { !isBlack($0) }
+    private static let blackNotes = allNotes.filter(isBlack)
+    private static let precedingWhiteKeyCounts = Dictionary(
+        uniqueKeysWithValues: blackNotes.map { note in
+            (note, whiteNotes.partitioningIndex { $0 >= note })
+        }
+    )
 
     var body: some View {
         GeometryReader { proxy in
-            let whiteWidth = proxy.size.width / CGFloat(whiteNotes.count)
+            let activeNotes = store.activeNotes
+            let expectedNotesByHand = store.expectedNotesByHand
+            let whiteWidth = proxy.size.width / CGFloat(Self.whiteNotes.count)
             let blackWidth = max(5, whiteWidth * 0.66)
 
             ZStack(alignment: .topLeading) {
                 HStack(spacing: 0) {
-                    ForEach(whiteNotes, id: \.self) { note in
+                    ForEach(Self.whiteNotes, id: \.self) { note in
                         PianoKeyButton(
                             note: note,
-                            feedback: store.activeNotes[note],
-                            expectedHand: store.expectedNotesByHand[note],
+                            feedback: activeNotes[note],
+                            expectedHand: expectedNotesByHand[note],
                             isBlack: false
                         ) {
                             store.receive(note: note, previewSound: true)
@@ -33,12 +34,12 @@ struct PianoKeyboardView: View {
                     }
                 }
 
-                ForEach(blackNotes, id: \.self) { note in
-                    let precedingWhiteKeys = whiteNotes.filter { $0 < note }.count
+                ForEach(Self.blackNotes, id: \.self) { note in
+                    let precedingWhiteKeys = Self.precedingWhiteKeyCounts[note] ?? 0
                     PianoKeyButton(
                         note: note,
-                        feedback: store.activeNotes[note],
-                        expectedHand: store.expectedNotesByHand[note],
+                        feedback: activeNotes[note],
+                        expectedHand: expectedNotesByHand[note],
                         isBlack: true
                     ) {
                         store.receive(note: note, previewSound: true)
@@ -72,36 +73,11 @@ private struct PianoKeyButton: View {
     let isBlack: Bool
     let action: () -> Void
 
-    @ViewBuilder
     var body: some View {
-        if let shortcut {
-            keyButton.keyboardShortcut(shortcut, modifiers: [])
-        } else {
-            keyButton
-        }
-    }
-
-    private var keyButton: some View {
         Button(action: action) {
             ZStack(alignment: .bottom) {
                 Rectangle()
                     .fill(fillStyle)
-                    .overlay(alignment: .bottom) {
-                        if let expectedHand {
-                            Rectangle()
-                                .fill(handColor(expectedHand))
-                                .frame(height: isBlack ? 5 : 8)
-                        }
-                    }
-                    .overlay(alignment: .top) {
-                        if expectedHand != nil {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: isBlack ? 4 : 6, height: isBlack ? 4 : 6)
-                                .shadow(color: .black.opacity(0.25), radius: 1)
-                                .padding(.top, isBlack ? 7 : 10)
-                        }
-                    }
 
                 if !isBlack, note % 12 == 0 {
                     Text("C\(note / 12 - 1)")
@@ -120,21 +96,12 @@ private struct PianoKeyButton: View {
         if let feedback {
             return AnyShapeStyle(
                 feedback == .correct
-                    ? Color.tempoGreen.gradient
-                    : Color.tempoRed.gradient
+                    ? Color.tempoGreen
+                    : Color.tempoRed
             )
         }
         if let expectedHand {
-            return AnyShapeStyle(
-                LinearGradient(
-                    colors: [
-                        handColor(expectedHand).opacity(isBlack ? 0.95 : 0.72),
-                        handColor(expectedHand).opacity(isBlack ? 0.62 : 0.28)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
+            return AnyShapeStyle(handColor(expectedHand))
         }
         if isBlack {
             return AnyShapeStyle(
@@ -157,13 +124,10 @@ private struct PianoKeyButton: View {
     private func handColor(_ hand: PianoHand) -> Color {
         hand == .right ? .tempoRightHand : .tempoLeftHand
     }
+}
 
-    private var shortcut: KeyEquivalent? {
-        let mapping: [Int: Character] = [
-            48: "a", 49: "w", 50: "s", 51: "e", 52: "d", 53: "f",
-            54: "t", 55: "g", 56: "y", 57: "h", 58: "u", 59: "j"
-        ]
-        guard let character = mapping[note] else { return nil }
-        return KeyEquivalent(character)
+private extension Array {
+    func partitioningIndex(where predicate: (Element) -> Bool) -> Int {
+        firstIndex(where: predicate) ?? endIndex
     }
 }

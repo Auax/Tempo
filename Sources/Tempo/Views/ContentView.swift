@@ -3,6 +3,9 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @State private var store = TempoStore()
+    @State private var isSidebarToggleHovered = false
+    @State private var isInspectorToggleHovered = false
+    @State private var titleBarInset: CGFloat = 52
 
     private let timer = Timer.publish(every: 0.02, on: .main, in: .common).autoconnect()
 
@@ -22,20 +25,33 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 980, minHeight: 680)
-        .background(Color.tempoWorkspaceBackground)
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    withAnimation(TempoTheme.Motion.standard) {
-                        store.sidebarHidden.toggle()
+        .background {
+            GeometryReader { geometry in
+                Color.clear
+                    .onChange(of: geometry.safeAreaInsets.top, initial: true) { _, newValue in
+                        titleBarInset = newValue
                     }
-                } label: {
-                    Image(systemName: "sidebar.left")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
+            }
+        }
+        .overlay(alignment: .top) {
+            practiceTitleBarOverlay
+        }
+        .tempoGlassWindowChrome()
+        .toolbar {
+            if !store.focusMode {
+                ToolbarItem(placement: .navigation) {
+                    sidebarToggleButton
                 }
-                .buttonStyle(.plain)
-                .help(store.sidebarHidden ? "Expand Sidebar" : "Collapse Sidebar")
+            }
+
+            if store.isPracticeWorkspacePresented, !store.focusMode {
+                ToolbarItem {
+                    Spacer()
+                }
+
+                ToolbarItem(placement: .primaryAction) {
+                    inspectorToggleButton
+                }
             }
         }
         .animation(TempoTheme.Motion.standard, value: store.sidebarHidden)
@@ -92,6 +108,71 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tempoImportScore)) { _ in
             store.showingImporter = true
         }
+    }
+
+    private var sidebarToggleButton: some View {
+        Button {
+            withAnimation(TempoTheme.Motion.standard) {
+                store.sidebarHidden.toggle()
+            }
+        } label: {
+            Image(systemName: "sidebar.left")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 24)
+                .background(
+                    isSidebarToggleHovered ? Color.primary.opacity(0.08) : .clear,
+                    in: RoundedRectangle(cornerRadius: TempoTheme.Radius.small)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isSidebarToggleHovered = $0 }
+        .help(store.sidebarHidden ? "Expand Sidebar" : "Collapse Sidebar")
+    }
+
+    private var inspectorToggleButton: some View {
+        Button {
+            withAnimation(TempoTheme.Motion.standard) {
+                store.inspectorVisible.toggle()
+            }
+        } label: {
+            Image(systemName: "sidebar.trailing")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 24)
+                .background(
+                    isInspectorToggleHovered ? Color.primary.opacity(0.08) : .clear,
+                    in: RoundedRectangle(cornerRadius: TempoTheme.Radius.small)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isInspectorToggleHovered = $0 }
+        .help(store.inspectorVisible ? "Hide Feedback" : "Show Feedback")
+    }
+
+    @ViewBuilder
+    private var practiceTitleBarOverlay: some View {
+        if store.isPracticeWorkspacePresented {
+            PracticeTitleBarRow(
+                store: store,
+                sidebarWidth: sidebarWidth,
+                sidebarCollapsed: store.sidebarHidden,
+                inspectorWidth: TempoTheme.Layout.inspectorWidth,
+                showsInspector: store.inspectorVisible,
+                focusMode: store.focusMode
+            )
+            .frame(height: titleBarInset)
+            .frame(maxWidth: .infinity)
+            .padding(.top, -titleBarInset)
+        }
+    }
+
+    private var sidebarWidth: CGFloat {
+        store.sidebarHidden
+            ? TempoTheme.Layout.sidebarCollapsed
+            : TempoTheme.Layout.sidebarExpanded
     }
 
     private var mainContent: some View {

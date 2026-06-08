@@ -30,7 +30,7 @@ struct SessionReviewView: View {
                 )
                 ReviewMetric(
                     value: TempoFormatters.duration(store.metrics.practicedSeconds),
-                    label: "Practice time",
+                    label: "Time in score",
                     color: .tempoBlue
                 )
                 ReviewMetric(

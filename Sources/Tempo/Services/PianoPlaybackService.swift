@@ -6,14 +6,18 @@ import Foundation
 final class PianoPlaybackService {
     private let engine = AVAudioEngine()
     private let sampler = AVAudioUnitSampler()
+    private let metronomeSampler = AVAudioUnitSampler()
     private var soundingNotes: Set<Int> = []
     private var lastSyncedBeat = -1.0
 
     init() {
         engine.attach(sampler)
+        engine.attach(metronomeSampler)
         engine.connect(sampler, to: engine.mainMixerNode, format: nil)
+        engine.connect(metronomeSampler, to: engine.mainMixerNode, format: nil)
         engine.mainMixerNode.outputVolume = 0.8
         loadPiano()
+        loadMetronome()
     }
 
     func sync(events: [ScoreNoteEvent], at beat: Double, isPlaying: Bool) {
@@ -90,10 +94,11 @@ final class PianoPlaybackService {
 
     func metronomeClick() {
         startEngineIfNeeded()
-        sampler.startNote(76, withVelocity: 72, onChannel: 9)
+        // GM percussion: side stick — short metronome tick.
+        metronomeSampler.startNote(37, withVelocity: 110, onChannel: 9)
         Task {
-            try? await Task.sleep(for: .milliseconds(60))
-            sampler.stopNote(76, onChannel: 9)
+            try? await Task.sleep(for: .milliseconds(40))
+            metronomeSampler.stopNote(37, onChannel: 9)
         }
     }
 
@@ -128,15 +133,27 @@ final class PianoPlaybackService {
         }
     }
 
-    private func loadPiano() {
-        let soundBank = URL(
+    private var systemSoundBank: URL {
+        URL(
             fileURLWithPath:
                 "/System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls"
         )
+    }
+
+    private func loadPiano() {
         try? sampler.loadSoundBankInstrument(
-            at: soundBank,
+            at: systemSoundBank,
             program: 0,
             bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
+            bankLSB: UInt8(kAUSampler_DefaultBankLSB)
+        )
+    }
+
+    private func loadMetronome() {
+        try? metronomeSampler.loadSoundBankInstrument(
+            at: systemSoundBank,
+            program: 0,
+            bankMSB: UInt8(kAUSampler_DefaultPercussionBankMSB),
             bankLSB: UInt8(kAUSampler_DefaultBankLSB)
         )
     }

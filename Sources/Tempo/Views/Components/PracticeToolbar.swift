@@ -1,37 +1,57 @@
 import AppKit
 import SwiftUI
 
-struct PracticeToolbar: View {
+struct PracticeContentToolbar: View {
     @Bindable var store: TempoStore
 
     var body: some View {
         HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(store.selectedPiece?.title ?? "Choose a score")
-                    .font(.headline)
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    Text(store.selectedPiece?.composer ?? "Tempo Library")
-                    Text("•")
-                    Text("Measure \(store.currentMeasure)")
-                }
-                .font(.caption)
+            PracticeToolbarTitle(store: store)
+
+            Spacer(minLength: 0)
+                .allowsHitTesting(false)
+
+            PracticeToolbarActions(store: store)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct PracticeToolbarTitle: View {
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(store.selectedPiece?.title ?? "Choose a score")
+                .font(.headline)
+                .lineLimit(1)
+
+            Text("·")
+                .foregroundStyle(.tertiary)
+
+            Text(store.selectedPiece?.composer ?? "Tempo Library")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-            }
+                .lineLimit(1)
 
-            Spacer()
+            Text("·")
+                .foregroundStyle(.tertiary)
 
-            Picker("Practice Mode", selection: $store.practiceMode) {
-                ForEach(PracticeMode.allCases) { mode in
-                    Label(mode.rawValue, systemImage: mode.symbol)
-                        .tag(mode)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .frame(width: 128)
+            Text("Measure \(store.currentMeasure)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
+        .allowsHitTesting(false)
+    }
+}
 
-            TempoControl(store: store)
+struct PracticeToolbarActions: View {
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        HStack(spacing: 12) {
+            PracticeTempoControl(store: store)
 
             Menu {
                 Button("Zoom In") {
@@ -55,9 +75,10 @@ struct PracticeToolbar: View {
                     "\(Int(store.scoreZoom * 100))%",
                     systemImage: "text.magnifyingglass"
                 )
+                .labelStyle(.titleAndIcon)
             }
-            .menuStyle(.button)
-            .frame(width: 82)
+            .menuStyle(.borderlessButton)
+            .frame(width: 76)
             .help("Score Zoom")
 
             Button {
@@ -66,7 +87,9 @@ struct PracticeToolbar: View {
                 }
             } label: {
                 Image(systemName: store.focusMode ? "arrow.down.right.and.arrow.up.left" : "viewfinder")
+                    .font(.system(size: 12, weight: .medium))
             }
+            .buttonStyle(.borderless)
             .help(store.focusMode ? "Exit Focus Mode" : "Focus Mode")
 
             Button {
@@ -74,21 +97,16 @@ struct PracticeToolbar: View {
                 NSApp.keyWindow?.toggleFullScreen(nil)
             } label: {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 12, weight: .medium))
             }
+            .buttonStyle(.borderless)
             .help("Fullscreen Practice")
         }
-        .buttonStyle(.borderless)
-        .padding(.horizontal, 20)
-        .frame(height: TempoTheme.Layout.topBarHeight)
-        .contentShape(Rectangle())
-        .gesture(WindowDragGesture())
-        .overlay(alignment: .bottom) {
-            Divider()
-        }
+        .labelStyle(.titleAndIcon)
     }
 }
 
-private struct TempoControl: View {
+private struct PracticeTempoControl: View {
     @Bindable var store: TempoStore
 
     var body: some View {
@@ -99,17 +117,17 @@ private struct TempoControl: View {
                 Image(systemName: store.isMetronomeEnabled ? "metronome.fill" : "metronome")
                     .foregroundStyle(store.isMetronomeEnabled ? Color.tempoBlue : .secondary)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .help(store.isMetronomeEnabled ? "Disable Metronome" : "Enable Metronome")
 
             Text("\(store.tempo)")
-                .font(.system(.body, design: .rounded).monospacedDigit())
+                .font(.system(.subheadline, design: .rounded).monospacedDigit())
             Stepper("", value: $store.tempo, in: 30...220, step: 2)
                 .labelsHidden()
                 .controlSize(.small)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 8)
         .frame(height: TempoTheme.Layout.controlHeight)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9))
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control))
     }
 }

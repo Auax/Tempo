@@ -6,26 +6,15 @@ struct FeedbackPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Live Feedback")
-                            .font(.headline)
-                        Text(store.practiceMode.rawValue)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button {
-                        withAnimation(TempoTheme.Motion.standard) {
-                            store.inspectorVisible = false
-                        }
-                    } label: {
-                        Image(systemName: "sidebar.trailing")
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    .help("Hide Feedback")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Live Feedback")
+                        .font(.headline)
+                    Text("Measure \(store.currentMeasure)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 AccuracyRing(value: store.metrics.accuracy)
                     .frame(maxWidth: .infinity)
@@ -41,11 +30,6 @@ struct FeedbackPanel: View {
                         value: "\(store.metrics.mistakes)",
                         color: .tempoRed
                     )
-                    CompactMetric(
-                        title: "Missed",
-                        value: "\(store.metrics.missedNotes)",
-                        color: .tempoOrange
-                    )
                 }
                 .padding(.vertical, 10)
                 .background(.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
@@ -59,7 +43,7 @@ struct FeedbackPanel: View {
                         .textCase(.uppercase)
 
                     DetailMetricRow(
-                        label: "Time practiced",
+                        label: "Time in score",
                         value: TempoFormatters.duration(store.metrics.practicedSeconds)
                     )
                     DetailMetricRow(

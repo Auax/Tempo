@@ -20,7 +20,7 @@ struct LibraryStoreTests {
             lastPracticed: Date(timeIntervalSince1970: 100),
             isFavorite: true,
             difficulty: PieceDifficulty.intermediate.rawValue,
-            genre: PieceGenre.romantic.rawValue,
+            genre: PieceGenre.classical.rawValue,
             addedAt: Date(timeIntervalSince1970: 100),
             sections: []
         )
@@ -32,7 +32,7 @@ struct LibraryStoreTests {
             bestAccuracy: 0,
             lastPracticed: Date(timeIntervalSince1970: 200),
             difficulty: PieceDifficulty.easy.rawValue,
-            genre: PieceGenre.baroque.rawValue,
+            genre: PieceGenre.other.rawValue,
             addedAt: Date(timeIntervalSince1970: 200),
             sections: []
         )
@@ -67,7 +67,7 @@ struct LibraryStoreTests {
             progress: 0,
             bestAccuracy: 0,
             difficulty: PieceDifficulty.intermediate.rawValue,
-            genre: PieceGenre.romantic.rawValue,
+            genre: PieceGenre.classical.rawValue,
             sections: []
         )
         store.pieces = [piece]
@@ -79,5 +79,35 @@ struct LibraryStoreTests {
         store.movePiece(piece.id, to: nil)
         #expect(store.pieces.first?.folderID == nil)
         #expect(store.pieceCount(in: folder) == 0)
+    }
+
+    @Test
+    func deletePieceRemovesLibraryEntryAndImportedFile() throws {
+        let suiteName = "LibraryStoreTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let scoreURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(UUID().uuidString).musicxml")
+        try Data("<score-partwise/>".utf8).write(to: scoreURL)
+        defer { try? FileManager.default.removeItem(at: scoreURL) }
+
+        let store = TempoStore(defaults: defaults, midiService: MIDIService(defaults: defaults))
+        let piece = Piece(
+            title: "Temporary Score",
+            composer: "",
+            collection: "MUSICXML",
+            scorePath: scoreURL.path,
+            progress: 0,
+            bestAccuracy: 0,
+            difficulty: PieceDifficulty.easy.rawValue,
+            sections: []
+        )
+        store.pieces = [piece]
+
+        store.deletePiece(piece.id)
+
+        #expect(store.pieces.isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: scoreURL.path))
     }
 }

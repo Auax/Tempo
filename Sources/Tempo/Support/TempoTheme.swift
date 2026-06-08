@@ -13,6 +13,34 @@ struct TempoGlassBackground: NSViewRepresentable {
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
+struct TempoWindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        DispatchQueue.main.async {
+            configure(windowFor: view)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            configure(windowFor: nsView)
+        }
+    }
+
+    private func configure(windowFor view: NSView) {
+        guard let window = view.window else { return }
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
+        window.toolbarStyle = .unifiedCompact
+        window.titlebarSeparatorStyle = .none
+        window.isMovableByWindowBackground = false
+        window.backgroundColor = .clear
+        window.isOpaque = false
+    }
+}
+
 enum TempoTheme {
     enum Spacing {
         static let xSmall: CGFloat = 4
@@ -116,6 +144,29 @@ struct TempoBorderedButtonStyle: ButtonStyle {
     }
 }
 
+struct TempoToolbarIconButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        TempoToolbarIconButtonBody(configuration: configuration)
+    }
+}
+
+private struct TempoToolbarIconButtonBody: View {
+    let configuration: ButtonStyle.Configuration
+    @State private var isHovered = false
+
+    var body: some View {
+        configuration.label
+            .frame(width: 26, height: 22)
+            .background(
+                isHovered ? Color.primary.opacity(0.08) : .clear,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.small)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.small))
+            .onHover { isHovered = $0 }
+            .opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+
 struct TempoProminentButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
@@ -158,5 +209,17 @@ extension View {
             TempoGlassBackground()
                 .ignoresSafeArea()
         }
+    }
+
+    func tempoGlassWindowChrome() -> some View {
+        background {
+            TempoWindowConfigurator()
+                .frame(width: 0, height: 0)
+        }
+        .background {
+            TempoGlassBackground()
+                .ignoresSafeArea()
+        }
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     }
 }

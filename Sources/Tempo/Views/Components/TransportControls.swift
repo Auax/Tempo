@@ -26,15 +26,7 @@ struct TransportControls: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
-                        .background(
-                            LinearGradient(
-                                colors: [.tempoBlueSoft, .tempoBlue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            in: Circle()
-                        )
-                        .shadow(color: .tempoBlue.opacity(0.28), radius: 8, y: 4)
+                        .background(Color.tempoBlue, in: Circle())
                 }
                 .buttonStyle(.plain)
                 .help(store.isPlaying ? "Pause" : "Play")
@@ -48,23 +40,12 @@ struct TransportControls: View {
 
             Spacer()
 
-            HStack(spacing: 14) {
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(store.metrics.accuracy, format: .percent.precision(.fractionLength(0)))
-                        .font(.headline.monospacedDigit())
-                    Text("Accuracy")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-
-                Button {
-                    withAnimation(TempoTheme.Motion.standard) {
-                        store.inspectorVisible.toggle()
-                    }
-                } label: {
-                    Image(systemName: "sidebar.trailing")
-                }
-                .help("Toggle Feedback")
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(store.metrics.accuracy, format: .percent.precision(.fractionLength(0)))
+                    .font(.headline.monospacedDigit())
+                Text("Accuracy")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
             .frame(width: 132, alignment: .trailing)
         }
