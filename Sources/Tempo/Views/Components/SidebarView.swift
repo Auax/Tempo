@@ -2,14 +2,16 @@ import SwiftUI
 
 struct SidebarView: View {
     @Bindable var store: TempoStore
+    var compact: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(spacing: 6) {
+            VStack(spacing: TempoTheme.Layout.sidebarItemSpacing) {
                 ForEach(AppDestination.allCases) { destination in
                     SidebarItem(
                         destination: destination,
-                        selected: store.destination == destination
+                        selected: store.destination == destination,
+                        compact: compact
                     ) {
                         withAnimation(TempoTheme.Motion.quick) {
                             store.openDestination(destination)
@@ -17,9 +19,10 @@ struct SidebarView: View {
                     }
                 }
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, TempoTheme.Layout.sidebarHorizontalPadding)
+            .padding(.top, TempoTheme.Layout.sidebarTopPadding)
 
-            if store.isPracticeWorkspacePresented {
+            if !compact, store.isPracticeWorkspacePresented {
                 Divider()
                     .padding(.horizontal, 20)
                     .padding(.vertical, 18)
@@ -30,12 +33,16 @@ struct SidebarView: View {
             Spacer(minLength: 12)
 
             connectionStatus
-                .padding(14)
+                .padding(.horizontal, TempoTheme.Layout.sidebarHorizontalPadding)
+                .padding(.bottom, 14)
         }
-        .frame(width: TempoTheme.Layout.sidebarExpanded)
+        .frame(
+            width: compact
+                ? TempoTheme.Layout.sidebarCollapsed
+                : TempoTheme.Layout.sidebarExpanded
+        )
         .frame(maxHeight: .infinity, alignment: .top)
         .tempoGlassPanel()
-        .safeAreaPadding(.top, 18)
     }
 
     private var expandedPracticeControls: some View {
@@ -103,10 +110,18 @@ struct SidebarView: View {
             store.midiService.refreshSources()
             store.showingMIDIConnection = true
         } label: {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(store.midiService.isConnected ? Color.tempoGreen : .secondary)
-                    .frame(width: 8, height: 8)
+            HStack(spacing: 11) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "pianokeys")
+                        .font(.system(size: 17, weight: .regular))
+                        .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
+
+                    Circle()
+                        .fill(store.midiService.isConnected ? Color.tempoGreen : .secondary)
+                        .frame(width: 7, height: 7)
+                        .offset(x: 3, y: -3)
+                }
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(store.midiService.isConnected ? "Piano Connected" : "Connect Piano")
                         .font(.caption.weight(.medium))
@@ -115,8 +130,20 @@ struct SidebarView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-                Spacer(minLength: 0)
+                .frame(maxWidth: compact ? 0 : .infinity, alignment: .leading)
+                .opacity(compact ? 0 : 1)
+                .clipped()
+
+                if !compact {
+                    Spacer(minLength: 0)
+                }
             }
+            .frame(
+                maxWidth: .infinity,
+                minHeight: TempoTheme.Layout.sidebarItemHeight,
+                alignment: .leading
+            )
+            .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -134,6 +161,7 @@ struct SidebarView: View {
 private struct SidebarItem: View {
     let destination: AppDestination
     let selected: Bool
+    var compact: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -141,14 +169,26 @@ private struct SidebarItem: View {
             HStack(spacing: 11) {
                 Image(systemName: destination.symbol)
                     .font(.system(size: 17, weight: .regular))
-                    .frame(width: 24)
+                    .frame(width: TempoTheme.Layout.sidebarItemIconWidth)
+
                 Text(destination.title)
                     .font(.system(size: 16, weight: selected ? .medium : .regular))
-                Spacer(minLength: 0)
+                    .lineLimit(1)
+                    .frame(maxWidth: compact ? 0 : .infinity, alignment: .leading)
+                    .opacity(compact ? 0 : 1)
+                    .clipped()
+
+                if !compact {
+                    Spacer(minLength: 0)
+                }
             }
+            .frame(
+                maxWidth: .infinity,
+                minHeight: TempoTheme.Layout.sidebarItemHeight,
+                alignment: .leading
+            )
+            .padding(.horizontal, TempoTheme.Layout.sidebarItemInnerPadding)
             .foregroundStyle(selected ? .primary : .secondary)
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity, minHeight: 44)
             .background(
                 selected ? Color.primary.opacity(0.09) : .clear,
                 in: RoundedRectangle(cornerRadius: 10)

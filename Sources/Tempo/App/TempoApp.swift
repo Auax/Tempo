@@ -12,6 +12,7 @@ struct TempoApp: App {
         }
         .defaultSize(width: 1_360, height: 900)
         .windowResizability(.contentMinSize)
+        .windowToolbarStyle(.unifiedCompact(showsTitle: false))
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Import Score…") {

@@ -13,35 +13,6 @@ struct TempoGlassBackground: NSViewRepresentable {
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
-struct TempoWindowConfigurator: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        DispatchQueue.main.async {
-            configure(windowFor: view)
-        }
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async {
-            configure(windowFor: nsView)
-        }
-    }
-
-    private func configure(windowFor view: NSView) {
-        guard let window = view.window else { return }
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
-        window.styleMask.insert(.fullSizeContentView)
-        window.toolbarStyle = .unified
-        window.titlebarSeparatorStyle = .none
-        window.toolbar?.showsBaselineSeparator = false
-        window.isMovableByWindowBackground = true
-        window.backgroundColor = .clear
-        window.isOpaque = false
-    }
-}
-
 enum TempoTheme {
     enum Spacing {
         static let xSmall: CGFloat = 4
@@ -58,13 +29,22 @@ enum TempoTheme {
         static let medium: CGFloat = 12
         static let large: CGFloat = 18
         static let xLarge: CGFloat = 24
-        static let window: CGFloat = 22
     }
 
     enum Layout {
         static let controlHeight: CGFloat = 30
         static let sidebarExpanded: CGFloat = 270
-        static let contentSidebarOverlap: CGFloat = 10
+        static let sidebarItemHeight: CGFloat = 44
+        static let sidebarItemIconWidth: CGFloat = 24
+        static let sidebarItemInnerPadding: CGFloat = 12
+        static let sidebarItemSpacing: CGFloat = 6
+        static let sidebarHorizontalPadding: CGFloat = 18
+        static let sidebarTopPadding: CGFloat = 12
+        static var sidebarCollapsed: CGFloat {
+            sidebarHorizontalPadding * 2
+                + sidebarItemInnerPadding * 2
+                + sidebarItemIconWidth
+        }
         static let inspectorWidth: CGFloat = 286
         static let topBarHeight: CGFloat = 64
         static let transportHeight: CGFloat = 66

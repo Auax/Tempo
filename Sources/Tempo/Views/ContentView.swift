@@ -8,19 +8,11 @@ struct ContentView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            if !store.sidebarHidden, !store.focusMode {
-                SidebarView(store: store)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
+            if !store.focusMode {
+                SidebarView(store: store, compact: store.sidebarHidden)
             }
 
             mainContent
-                .padding(
-                    .leading,
-                    store.sidebarHidden || store.focusMode
-                        ? 0
-                        : -TempoTheme.Layout.contentSidebarOverlap
-                )
-                .zIndex(1)
 
             if store.isPracticeWorkspacePresented,
                store.inspectorVisible,
@@ -30,13 +22,7 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 980, minHeight: 680)
-        .background {
-            TempoWindowConfigurator()
-                .frame(width: 0, height: 0)
-        }
-        .background(Color.tempoWorkspaceBackground.ignoresSafeArea())
-        .toolbar(removing: .title)
-        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .background(Color.tempoWorkspaceBackground)
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button {
@@ -45,11 +31,13 @@ struct ContentView: View {
                     }
                 } label: {
                     Image(systemName: "sidebar.left")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
-                .help(store.sidebarHidden ? "Show Sidebar" : "Hide Sidebar")
+                .buttonStyle(.plain)
+                .help(store.sidebarHidden ? "Expand Sidebar" : "Collapse Sidebar")
             }
         }
-        .buttonBorderShape(.roundedRectangle(radius: TempoTheme.Radius.control))
         .animation(TempoTheme.Motion.standard, value: store.sidebarHidden)
         .animation(TempoTheme.Motion.standard, value: store.focusMode)
         .animation(TempoTheme.Motion.standard, value: store.inspectorVisible)
@@ -116,23 +104,6 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.tempoWorkspaceBackground)
-        .clipShape(contentShape)
-        .overlay {
-            contentShape
-                .stroke(Color.primary.opacity(0.16), lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(0.12), radius: 6, x: -1)
-        .ignoresSafeArea(.container, edges: .top)
-    }
-
-    private var contentShape: UnevenRoundedRectangle {
-        UnevenRoundedRectangle(
-            cornerRadii: .init(
-                topLeading: TempoTheme.Radius.window,
-                bottomLeading: TempoTheme.Radius.window
-            ),
-            style: .continuous
-        )
     }
 
     private var scoreTypes: [UTType] {
