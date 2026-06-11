@@ -34,6 +34,8 @@ struct LibraryScoreCard: View {
                 }
                 .buttonStyle(.plain)
                 .help(piece.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+                .opacity(piece.isFavorite || isHovered ? 1 : 0)
+                .allowsHitTesting(piece.isFavorite || isHovered)
 
                 Spacer()
 
