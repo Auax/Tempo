@@ -224,3 +224,9 @@ struct MIDIConnectionView: View {
         return "\(pitchClass)\(octave)"
     }
 }
+
+#if DEBUG
+#Preview("MIDI Connection") {
+    MIDIConnectionView(midiService: PreviewFixtures.store().midiService)
+}
+#endif

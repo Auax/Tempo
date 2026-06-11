@@ -30,3 +30,13 @@ struct TempoLogo: View {
         .accessibilityLabel("Tempo")
     }
 }
+
+#if DEBUG
+#Preview("Tempo Logo") {
+    VStack(spacing: 24) {
+        TempoLogo()
+        TempoLogo(compact: true)
+    }
+    .padding()
+}
+#endif

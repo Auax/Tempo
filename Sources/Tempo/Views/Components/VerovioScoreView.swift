@@ -400,3 +400,17 @@ private struct SVGScoreWebView: NSViewRepresentable {
         }
     }
 }
+
+#if DEBUG
+#Preview("Rendered Score") {
+    VerovioScoreView(
+        score: PreviewFixtures.parsedScore,
+        errorMessage: nil,
+        currentMeasure: 1,
+        zoom: 1,
+        expectedNotes: ["preview-note-c4": .right],
+        feedback: ["preview-note-c4": .correct]
+    )
+    .frame(width: 900, height: 620)
+}
+#endif

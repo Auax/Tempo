@@ -75,3 +75,10 @@ private struct LegendItem: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Practice Workspace") {
+    PracticeWorkspaceView(store: PreviewFixtures.store(practicing: true, withSession: true))
+        .frame(width: 1_120, height: 760)
+}
+#endif

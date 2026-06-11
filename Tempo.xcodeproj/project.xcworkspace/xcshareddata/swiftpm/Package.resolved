@@ -1,0 +1,23 @@
+{
+  "originHash" : "448e821691ee8bb248f442569d3861137b5f2a7108f5b681650e48a283436aee",
+  "pins" : [
+    {
+      "identity" : "verovio",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/rism-digital/verovio.git",
+      "state" : {
+        "revision" : "43f806031bfff2c64003fc8ddd9910820445f6ab"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/weichsel/ZIPFoundation.git",
+      "state" : {
+        "revision" : "22787ffb59de99e5dc1fbfe80b19c97a904ad48d",
+        "version" : "0.9.20"
+      }
+    }
+  ],
+  "version" : 3
+}

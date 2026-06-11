@@ -1,0 +1,71 @@
+name: Tempo
+
+options:
+  minimumXcodeGenVersion: 2.44.1
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  Verovio:
+    url: https://github.com/rism-digital/verovio.git
+    revision: 43f806031bfff2c64003fc8ddd9910820445f6ab
+  ZIPFoundation:
+    url: https://github.com/weichsel/ZIPFoundation.git
+    exactVersion: 0.9.20
+
+targets:
+  Tempo:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/Tempo
+    dependencies:
+      - package: Verovio
+        product: VerovioToolkit
+      - package: ZIPFoundation
+        product: ZIPFoundation
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.auax.tempo
+        PRODUCT_NAME: Tempo
+        SWIFT_VERSION: 5.0
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Tempo
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
+        INFOPLIST_KEY_NSHighResolutionCapable: YES
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+
+  TempoTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/TempoTests
+    dependencies:
+      - target: Tempo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.auax.tempo.tests
+        SWIFT_VERSION: 5.0
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Tempo:
+    build:
+      targets:
+        Tempo: all
+        TempoTests:
+          - test
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - TempoTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

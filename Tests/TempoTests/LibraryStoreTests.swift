@@ -82,6 +82,27 @@ struct LibraryStoreTests {
     }
 
     @Test
+    func clickingSelectedQuickFilterReturnsToAll() {
+        let suiteName = "LibraryStoreTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let store = TempoStore(defaults: defaults, midiService: MIDIService(defaults: defaults))
+
+        store.toggleLibraryQuickFilter(.recent)
+        #expect(store.libraryQuickFilter == .recent)
+
+        store.toggleLibraryQuickFilter(.recent)
+        #expect(store.libraryQuickFilter == .all)
+
+        store.toggleLibraryQuickFilter(.favorites)
+        #expect(store.libraryQuickFilter == .favorites)
+
+        store.toggleLibraryQuickFilter(.all)
+        #expect(store.libraryQuickFilter == .all)
+    }
+
+    @Test
     func deletePieceRemovesLibraryEntryAndImportedFile() throws {
         let suiteName = "LibraryStoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -110,4 +131,89 @@ struct LibraryStoreTests {
         #expect(store.pieces.isEmpty)
         #expect(!FileManager.default.fileExists(atPath: scoreURL.path))
     }
+
+    @Test
+    func artworkConfigurationRoundTripsWithPiece() throws {
+        let artwork = ScoreArtwork(
+            preset: .autumn,
+            customImagePath: "/tmp/custom-artwork.png",
+            textAlignment: .trailing,
+            usesDarkText: true,
+            titleScale: 1.12,
+            overlayOpacity: 0.08,
+            imageOffsetX: -0.25,
+            imageOffsetY: 0.4
+        )
+        let piece = Piece(
+            title: "Autumn Leaves",
+            composer: "Joseph Kosma",
+            collection: "MUSICXML",
+            progress: 0,
+            bestAccuracy: 0,
+            difficulty: PieceDifficulty.easy.rawValue,
+            sections: [],
+            artwork: artwork,
+            artworkNotes: [
+                ScoreArtworkNote(position: 0.2, pitch: 64, line: 0),
+                ScoreArtworkNote(position: 0.7, pitch: 57, line: 1)
+            ]
+        )
+
+        let decoded = try JSONDecoder().decode(
+            Piece.self,
+            from: JSONEncoder().encode(piece)
+        )
+
+        #expect(decoded.artwork == artwork)
+        #expect(decoded.artworkNotes == piece.artworkNotes)
+    }
+
+    @Test
+    func editingPieceUpdatesLibraryDetailsAndArtwork() {
+        let suiteName = "LibraryStoreTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let store = TempoStore(defaults: defaults, midiService: MIDIService(defaults: defaults))
+        let folder = ScoreFolder(name: "Recital")
+        let piece = Piece(
+            title: "Old Title",
+            composer: "Old Composer",
+            collection: "MUSICXML",
+            progress: 0.4,
+            bestAccuracy: 0.9,
+            difficulty: PieceDifficulty.easy.rawValue,
+            genre: PieceGenre.classical.rawValue,
+            sections: [],
+            artwork: .default
+        )
+        store.pieces = [piece]
+        store.folders = [folder]
+
+        var artwork = ScoreArtwork.default
+        artwork.preset = .autumn
+        artwork.textAlignment = .trailing
+
+        store.finishEditing(
+            pieceID: piece.id,
+            title: "  New Title  ",
+            composer: " New Composer ",
+            difficulty: .advanced,
+            genre: .film,
+            folderID: folder.id,
+            artwork: artwork,
+            customArtworkData: nil
+        )
+
+        let edited = store.pieces[0]
+        #expect(edited.title == "New Title")
+        #expect(edited.composer == "New Composer")
+        #expect(edited.difficulty == PieceDifficulty.advanced.rawValue)
+        #expect(edited.genre == PieceGenre.film.rawValue)
+        #expect(edited.folderID == folder.id)
+        #expect(edited.artwork == artwork)
+        #expect(edited.progress == piece.progress)
+        #expect(edited.bestAccuracy == piece.bestAccuracy)
+    }
+
 }

@@ -84,6 +84,16 @@ Favor simplicity over feature density.
 
 ---
 
+## Icon Styling
+
+Display icons on their own, without rounded background shapes, containers, badges, or decorative tiles.
+
+This applies across navigation, cards, controls, settings, and status elements.
+
+Use the icon's color, weight, size, and opacity to communicate hierarchy or state instead of placing it on a rounded background.
+
+---
+
 ## Instant Feedback
 
 Feedback should be immediate and obvious.

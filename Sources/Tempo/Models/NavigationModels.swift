@@ -4,14 +4,20 @@ enum AppDestination: String, CaseIterable, Identifiable, Codable {
     case home
     case library
     case progress
+    case settings
 
     var id: String { rawValue }
+
+    static var primaryCases: [AppDestination] {
+        [.home, .library, .progress]
+    }
 
     var title: String {
         switch self {
         case .home: "Home"
         case .library: "Library"
         case .progress: "Progress"
+        case .settings: "Settings"
         }
     }
 
@@ -20,6 +26,7 @@ enum AppDestination: String, CaseIterable, Identifiable, Codable {
         case .home: "house"
         case .library: "music.note.list"
         case .progress: "chart.xyaxis.line"
+        case .settings: "gearshape"
         }
     }
 }

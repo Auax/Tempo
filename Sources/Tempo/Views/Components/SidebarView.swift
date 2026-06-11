@@ -7,7 +7,7 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(spacing: TempoTheme.Layout.sidebarItemSpacing) {
-                ForEach(AppDestination.allCases) { destination in
+                ForEach(AppDestination.primaryCases) { destination in
                     SidebarItem(
                         destination: destination,
                         selected: store.destination == destination,
@@ -32,9 +32,21 @@ struct SidebarView: View {
 
             Spacer(minLength: 12)
 
-            connectionStatus
-                .padding(.horizontal, TempoTheme.Layout.sidebarHorizontalPadding)
-                .padding(.bottom, 14)
+            VStack(spacing: TempoTheme.Layout.sidebarItemSpacing) {
+                connectionStatus
+
+                SidebarItem(
+                    destination: .settings,
+                    selected: store.destination == .settings,
+                    compact: compact
+                ) {
+                    withAnimation(TempoTheme.Motion.quick) {
+                        store.openDestination(.settings)
+                    }
+                }
+            }
+            .padding(.horizontal, TempoTheme.Layout.sidebarHorizontalPadding)
+            .padding(.bottom, 14)
         }
         .frame(
             width: compact
@@ -229,3 +241,26 @@ struct PieceArtwork: View {
         .accessibilityLabel("\(title) artwork")
     }
 }
+
+#if DEBUG
+#Preview("Sidebar") {
+    SidebarView(
+        store: PreviewFixtures.store(practicing: true),
+        compact: false
+    )
+    .frame(height: 760)
+}
+
+#Preview("Compact Sidebar") {
+    SidebarView(
+        store: PreviewFixtures.store(practicing: true),
+        compact: true
+    )
+    .frame(height: 760)
+}
+
+#Preview("Piece Artwork") {
+    PieceArtwork(title: PreviewFixtures.piece.title, size: 96)
+        .padding()
+}
+#endif

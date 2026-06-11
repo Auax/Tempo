@@ -140,3 +140,10 @@ private struct HandToggleGroup: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Transport Controls") {
+    TransportControls(store: PreviewFixtures.store(practicing: true, withSession: true))
+        .frame(width: 1_080)
+}
+#endif

@@ -131,3 +131,21 @@ private struct PracticeTempoControl: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control))
     }
 }
+
+#if DEBUG
+#Preview("Practice Toolbar") {
+    PracticeContentToolbar(store: PreviewFixtures.store(practicing: true))
+        .padding()
+        .frame(width: 900)
+}
+
+#Preview("Practice Toolbar Title") {
+    PracticeToolbarTitle(store: PreviewFixtures.store(practicing: true))
+        .padding()
+}
+
+#Preview("Practice Toolbar Actions") {
+    PracticeToolbarActions(store: PreviewFixtures.store(practicing: true))
+        .padding()
+}
+#endif

@@ -20,6 +20,112 @@ enum PieceGenre: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 }
 
+enum ScoreArtworkPreset: String, CaseIterable, Identifiable, Codable {
+    case moonlit
+    case nocturne
+    case autumn
+    case sonata
+    case border
+    case border2
+    case minimalistic
+    case autumn2
+    case moonlit2
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .moonlit:
+            "Moonlit"
+        case .nocturne:
+            "Nocturne"
+        case .autumn:
+            "Autumn"
+        case .sonata:
+            "Sonata"
+        case .border:
+            "Ivory"
+        case .border2:
+            "Marquee"
+        case .minimalistic:
+            "Minimal"
+        case .autumn2:
+            "Maple"
+        case .moonlit2:
+            "Moonrise"
+        }
+    }
+
+    var resourceName: String { rawValue }
+
+    var prefersDarkText: Bool {
+        switch self {
+        case .autumn, .sonata, .border, .border2, .minimalistic, .autumn2:
+            true
+        case .moonlit, .nocturne, .moonlit2:
+            false
+        }
+    }
+}
+
+enum ScoreArtworkTextAlignment: String, CaseIterable, Identifiable, Codable {
+    case leading
+    case center
+    case trailing
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .leading:
+            "Left"
+        case .center:
+            "Center"
+        case .trailing:
+            "Right"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .leading:
+            "text.alignleft"
+        case .center:
+            "text.aligncenter"
+        case .trailing:
+            "text.alignright"
+        }
+    }
+}
+
+struct ScoreArtwork: Codable, Hashable {
+    var preset: ScoreArtworkPreset
+    var customImagePath: String?
+    var textAlignment: ScoreArtworkTextAlignment
+    var usesDarkText: Bool
+    var titleScale: Double
+    var overlayOpacity: Double
+    var imageOffsetX: Double
+    var imageOffsetY: Double
+
+    static let `default` = ScoreArtwork(
+        preset: .moonlit,
+        customImagePath: nil,
+        textAlignment: .leading,
+        usesDarkText: false,
+        titleScale: 1,
+        overlayOpacity: 0.24,
+        imageOffsetX: 0,
+        imageOffsetY: 0
+    )
+}
+
+struct ScoreArtworkNote: Codable, Hashable {
+    let position: Double
+    let pitch: Int
+    let line: Int
+}
+
 struct ScoreFolder: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
@@ -81,6 +187,8 @@ struct Piece: Identifiable, Codable, Hashable {
     var folderID: ScoreFolder.ID?
     var addedAt: Date
     var sections: [PracticeSection]
+    var artwork: ScoreArtwork
+    var artworkNotes: [ScoreArtworkNote]
 
     init(
         id: UUID = UUID(),
@@ -97,7 +205,9 @@ struct Piece: Identifiable, Codable, Hashable {
         genre: String = PieceGenre.classical.rawValue,
         folderID: ScoreFolder.ID? = nil,
         addedAt: Date = .now,
-        sections: [PracticeSection]
+        sections: [PracticeSection],
+        artwork: ScoreArtwork = .default,
+        artworkNotes: [ScoreArtworkNote] = []
     ) {
         self.id = id
         self.title = title
@@ -114,6 +224,8 @@ struct Piece: Identifiable, Codable, Hashable {
         self.folderID = folderID
         self.addedAt = addedAt
         self.sections = sections
+        self.artwork = artwork
+        self.artworkNotes = artworkNotes
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -132,6 +244,8 @@ struct Piece: Identifiable, Codable, Hashable {
         case folderID
         case addedAt
         case sections
+        case artwork
+        case artworkNotes
     }
 
     init(from decoder: Decoder) throws {
@@ -154,5 +268,10 @@ struct Piece: Identifiable, Codable, Hashable {
         folderID = try container.decodeIfPresent(ScoreFolder.ID.self, forKey: .folderID)
         addedAt = try container.decodeIfPresent(Date.self, forKey: .addedAt) ?? lastPracticed
         sections = try container.decodeIfPresent([PracticeSection].self, forKey: .sections) ?? []
+        artwork = try container.decodeIfPresent(ScoreArtwork.self, forKey: .artwork) ?? .default
+        artworkNotes = try container.decodeIfPresent(
+            [ScoreArtworkNote].self,
+            forKey: .artworkNotes
+        ) ?? []
     }
 }

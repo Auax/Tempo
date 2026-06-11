@@ -156,3 +156,10 @@ private struct DetailMetricRow: View {
         .font(.caption)
     }
 }
+
+#if DEBUG
+#Preview("Feedback Panel") {
+    FeedbackPanel(store: PreviewFixtures.store(practicing: true, withSession: true))
+        .frame(height: 680)
+}
+#endif

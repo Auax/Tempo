@@ -72,6 +72,9 @@ struct ContentView: View {
         }) { pendingImport in
             ScoreImportDetailsView(store: store, pendingImport: pendingImport)
         }
+        .sheet(item: $store.editingPiece) { piece in
+            ScoreImportDetailsView(store: store, piece: piece)
+        }
         .sheet(isPresented: $store.showingNewFolder) {
             NewFolderView(store: store)
         }
@@ -201,6 +204,15 @@ struct ContentView: View {
             LibraryView(store: store)
         case .progress:
             ProgressScreen(store: store)
+        case .settings:
+            TempoSettingsView(embedded: true)
         }
     }
 }
+
+#if DEBUG
+#Preview("App Window") {
+    ContentView()
+        .frame(width: 1_360, height: 900)
+}
+#endif

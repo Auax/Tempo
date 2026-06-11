@@ -157,60 +157,338 @@ struct LibrarySortPicker: View {
     }
 }
 
-struct ScoreGradientArtwork: View {
-    let piece: Piece
-
-    private var palette: [Color] {
-        let palettes: [[Color]] = [
-            [.tempoBlue.opacity(0.95), Color(red: 0.10, green: 0.20, blue: 0.38)],
-            [Color(red: 0.05, green: 0.55, blue: 0.66), Color(red: 0.10, green: 0.22, blue: 0.34)],
-            [Color(red: 0.74, green: 0.34, blue: 0.48), Color(red: 0.28, green: 0.13, blue: 0.32)],
-            [Color(red: 0.76, green: 0.48, blue: 0.16), Color(red: 0.27, green: 0.19, blue: 0.12)],
-            [Color(red: 0.26, green: 0.58, blue: 0.40), Color(red: 0.08, green: 0.24, blue: 0.24)]
-        ]
-        let value = piece.title.unicodeScalars.reduce(0) { $0 + Int($1.value) }
-        return palettes[value % palettes.count]
-    }
+struct LibraryFilterControls: View {
+    @Bindable var store: TempoStore
+    @State private var isFilterPopoverPresented = false
+    @State private var draftQuickFilter: LibraryQuickFilter = .all
+    @State private var draftDifficulties: Set<String> = []
+    @State private var draftGenres: Set<String> = []
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: palette,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        HStack(spacing: TempoTheme.Spacing.medium) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: TempoTheme.Spacing.small) {
+                    ForEach(LibraryQuickFilter.allCases) { filter in
+                        filterChip(
+                            filter.rawValue,
+                            symbol: filter.symbol,
+                            isSelected: store.libraryQuickFilter == filter
+                        ) {
+                            withAnimation(TempoTheme.Motion.quick) {
+                                store.toggleLibraryQuickFilter(filter)
+                            }
+                        }
+                    }
 
-            Circle()
-                .fill(.white.opacity(0.12))
-                .frame(width: 150, height: 150)
-                .blur(radius: 1)
-                .offset(x: 80, y: -70)
+                    ForEach(activeDifficulties) { difficulty in
+                        filterChip(
+                            difficulty.rawValue,
+                            isSelected: true,
+                            isRemovable: true
+                        ) {
+                            withAnimation(TempoTheme.Motion.quick) {
+                                _ = store.selectedDifficulties.remove(difficulty.rawValue)
+                            }
+                        }
+                    }
 
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.28)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-
-            VStack(spacing: 8) {
-                Image(systemName: "music.note")
-                    .font(.title2.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.82))
-                Text(piece.title)
-                    .font(.system(size: 17, weight: .semibold, design: .serif))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
-                if !piece.composer.isEmpty {
-                    Text(piece.composer)
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .lineLimit(1)
+                    ForEach(activeGenres) { genre in
+                        filterChip(
+                            genre.rawValue,
+                            isSelected: true,
+                            isRemovable: true
+                        ) {
+                            withAnimation(TempoTheme.Motion.quick) {
+                                _ = store.selectedGenres.remove(genre.rawValue)
+                            }
+                        }
+                    }
                 }
             }
-            .foregroundStyle(.white)
-            .padding(18)
+            Spacer(minLength: 0)
+
+            Button {
+                loadDraftFilters()
+                isFilterPopoverPresented.toggle()
+            } label: {
+                HStack(spacing: TempoTheme.Spacing.small) {
+                    Image(systemName: "slider.horizontal.3")
+                    Text("Filters")
+                    if activeFilterCount > 0 {
+                        Text(activeFilterCount, format: .number)
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(minWidth: 18, minHeight: 18)
+                            .background(Color.tempoBlue, in: Circle())
+                    }
+                }
+            }
+            .tempoBorderedButton()
+            .popover(
+                isPresented: $isFilterPopoverPresented,
+                arrowEdge: .top
+            ) {
+                filterPopover
+            }
         }
-        .aspectRatio(0.78, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var filterPopover: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: TempoTheme.Spacing.large) {
+                    filterSection("Library") {
+                        ForEach(LibraryQuickFilter.allCases) { filter in
+                            filterRow(
+                                filter.rawValue,
+                                symbol: filter.symbol,
+                                count: quickFilterCount(filter),
+                                isSelected: draftQuickFilter == filter
+                            ) {
+                                draftQuickFilter = filter
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    filterSection("Difficulty") {
+                        ForEach(PieceDifficulty.allCases) { difficulty in
+                            filterRow(
+                                difficulty.rawValue,
+                                count: store.pieces.filter {
+                                    $0.difficulty == difficulty.rawValue
+                                }.count,
+                                isSelected: draftDifficulties.contains(difficulty.rawValue)
+                            ) {
+                                toggle(difficulty.rawValue, in: &draftDifficulties)
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    filterSection("Genres") {
+                        ForEach(PieceGenre.allCases) { genre in
+                            filterRow(
+                                genre.rawValue,
+                                count: store.pieces.filter {
+                                    $0.genre == genre.rawValue
+                                }.count,
+                                isSelected: draftGenres.contains(genre.rawValue)
+                            ) {
+                                toggle(genre.rawValue, in: &draftGenres)
+                            }
+                        }
+                    }
+                }
+                .padding(TempoTheme.Spacing.xLarge)
+            }
+            .frame(maxHeight: 360)
+
+            Divider()
+
+            HStack(spacing: TempoTheme.Spacing.medium) {
+                Button {
+                    draftQuickFilter = .all
+                    draftDifficulties.removeAll()
+                    draftGenres.removeAll()
+                } label: {
+                    Text("Clear")
+                        .frame(maxWidth: .infinity)
+                }
+                .tempoBorderedButton()
+                .frame(maxWidth: .infinity)
+
+                Button {
+                    withAnimation(TempoTheme.Motion.quick) {
+                        store.libraryQuickFilter = draftQuickFilter
+                        store.selectedDifficulties = draftDifficulties
+                        store.selectedGenres = draftGenres
+                    }
+                    isFilterPopoverPresented = false
+                } label: {
+                    Text(applyButtonTitle)
+                        .frame(maxWidth: .infinity)
+                }
+                .tempoProminentButton()
+                .frame(maxWidth: .infinity)
+            }
+            .padding(TempoTheme.Spacing.large)
+        }
+        .frame(width: 300)
+    }
+
+    private var activeFilterCount: Int {
+        (store.libraryQuickFilter == .all ? 0 : 1)
+            + store.selectedDifficulties.count
+            + store.selectedGenres.count
+    }
+
+    private var activeDifficulties: [PieceDifficulty] {
+        Array(PieceDifficulty.allCases).filter {
+            store.selectedDifficulties.contains($0.rawValue)
+        }
+    }
+
+    private var activeGenres: [PieceGenre] {
+        Array(PieceGenre.allCases).filter {
+            store.selectedGenres.contains($0.rawValue)
+        }
+    }
+
+    private var draftFilterCount: Int {
+        (draftQuickFilter == .all ? 0 : 1)
+            + draftDifficulties.count
+            + draftGenres.count
+    }
+
+    private var applyButtonTitle: String {
+        draftFilterCount == 0 ? "Apply" : "Apply (\(draftFilterCount))"
+    }
+
+    private func filterChip(
+        _ title: String,
+        symbol: String? = nil,
+        isSelected: Bool,
+        isRemovable: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                if let symbol {
+                    Image(systemName: symbol)
+                }
+                Text(title)
+                if isRemovable {
+                    Image(systemName: "xmark")
+                        .font(.caption2.weight(.bold))
+                }
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(isSelected ? Color.tempoBlue : .primary)
+            .padding(.horizontal, TempoTheme.Spacing.medium)
+            .frame(height: TempoTheme.Layout.controlHeight)
+            .background(
+                isSelected ? Color.tempoBlue.opacity(0.12) : Color.clear,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                    .stroke(
+                        isSelected ? Color.tempoBlue.opacity(0.65) : Color.tempoControlBorder,
+                        lineWidth: 1
+                    )
+            }
+            .contentShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.control))
+        }
+        .buttonStyle(.plain)
+        .help(isRemovable ? "Remove \(title) filter" : "Show \(title.lowercased()) scores")
+    }
+
+    private func filterSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            content()
+        }
+    }
+
+    private func filterRow(
+        _ title: String,
+        symbol: String? = nil,
+        count: Int,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: TempoTheme.Spacing.medium) {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isSelected ? Color.tempoBlue : .secondary)
+                if let symbol {
+                    Image(systemName: symbol)
+                        .foregroundStyle(.secondary)
+                        .frame(width: TempoTheme.Spacing.large)
+                }
+                Text(title)
+                Spacer()
+                Text(count, format: .number)
+                    .foregroundStyle(.secondary)
+            }
+            .font(.body)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func loadDraftFilters() {
+        draftQuickFilter = store.libraryQuickFilter
+        draftDifficulties = store.selectedDifficulties
+        draftGenres = store.selectedGenres
+    }
+
+    private func quickFilterCount(_ filter: LibraryQuickFilter) -> Int {
+        switch filter {
+        case .all:
+            store.pieces.count
+        case .recent:
+            store.pieces.filter {
+                Calendar.current.dateComponents(
+                    [.day],
+                    from: $0.lastPracticed,
+                    to: .now
+                ).day ?? 0 <= 30
+            }.count
+        case .favorites:
+            store.pieces.filter(\.isFavorite).count
+        }
+    }
+
+    private func toggle(_ value: String, in set: inout Set<String>) {
+        if set.contains(value) {
+            set.remove(value)
+        } else {
+            set.insert(value)
+        }
     }
 }
+
+#if DEBUG
+private struct LibraryControlsPreview: View {
+    @State private var text = "Debussy"
+    @State private var sort = LibrarySort.lastOpened
+
+    var body: some View {
+        VStack(spacing: 16) {
+            TempoTextField(prompt: "Composer", text: $text)
+            TempoSearchField(prompt: "Search scores", text: $text)
+            TempoMenuPicker(
+                selection: $sort,
+                options: LibrarySort.allCases,
+                label: \.rawValue
+            )
+            LibrarySortPicker(selection: $sort)
+            LibraryFilterControls(store: PreviewFixtures.store())
+            ScoreArtworkView(
+                title: PreviewFixtures.piece.title,
+                composer: PreviewFixtures.piece.composer,
+                artwork: PreviewFixtures.piece.artwork,
+                difficulty: PreviewFixtures.piece.difficulty,
+                genre: PreviewFixtures.piece.genre,
+                scoreXML: PreviewFixtures.parsedScore.xml
+            )
+                .frame(width: 210)
+        }
+        .padding()
+        .frame(width: 360)
+    }
+}
+
+#Preview("Library Controls") {
+    LibraryControlsPreview()
+}
+#endif

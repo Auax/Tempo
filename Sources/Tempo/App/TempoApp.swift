@@ -4,11 +4,12 @@ import SwiftUI
 @main
 struct TempoApp: App {
     @NSApplicationDelegateAdaptor(TempoAppDelegate.self) private var appDelegate
+    @AppStorage("tempo.appearance") private var appearance = TempoAppearance.system
 
     var body: some Scene {
         WindowGroup("Tempo", id: "main") {
             ContentView()
-                .preferredColorScheme(nil)
+                .preferredColorScheme(appearance.colorScheme)
         }
         .defaultSize(width: 1_360, height: 900)
         .windowResizability(.contentMinSize)
@@ -48,6 +49,7 @@ struct TempoApp: App {
 
         Settings {
             TempoSettingsView()
+                .preferredColorScheme(appearance.colorScheme)
         }
     }
 }

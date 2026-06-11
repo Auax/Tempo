@@ -1,0 +1,730 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		032A2743B9AF780FDEF7183B /* VerovioSourceIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6A9BC3D1C7092C43ECF73F /* VerovioSourceIDTests.swift */; };
+		0663699B7185E9E2A3DFAE64 /* PreviewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAF2DBAAF0BAC586CEB2624 /* PreviewFixtures.swift */; };
+		0707C67F973222DB636BF75E /* SessionMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621B168D177CAEF62C009206 /* SessionMetricsTests.swift */; };
+		08A0E6182D8B4A6A4B64D6C3 /* MIDIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2477231F540EB1BD7694F0 /* MIDIServiceTests.swift */; };
+		0C2DC8BF253D3F4110AB09EE /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2CFFDC6309AD840D790033 /* Piece.swift */; };
+		0CCA8211E465CECD30DB7EEC /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEC4100791175DCD5B1BDFA /* LibraryView.swift */; };
+		1340F7A80936BA17A48E7C77 /* MusicXMLScoreParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01ECFC8202A52963094E389 /* MusicXMLScoreParser.swift */; };
+		13FDDC855D41A1CAF68DE2E3 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F9FBC73E954F1F87C43D4A /* Formatters.swift */; };
+		1A75D1D0B67D00BA2C6222B4 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625A82B113EADC22BC690DD2 /* ProgressView.swift */; };
+		1D0830D858A05950C18A85F6 /* SessionReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A23D8AC54D4606E534884 /* SessionReviewView.swift */; };
+		1E0294461D569FCBDEF54F7B /* TransportControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E657BBD64E5D4433C304C1 /* TransportControls.swift */; };
+		281A1DBC113B312ACAF45EC1 /* ScoreArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518164B1228AEB85062D560D /* ScoreArtworkView.swift */; };
+		2B51FF5A188B7EC7B7A9822D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7876FBC1A486BCF089AE92 /* HomeView.swift */; };
+		2EF0339A361153FC06F0D9B2 /* LibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C858F2445E580CDFA63CB9 /* LibraryStoreTests.swift */; };
+		33F3EC2FBFE2744CD204D51C /* NavigationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD930357354B5A8F8BB202A /* NavigationModels.swift */; };
+		3CC16D267A0F84AB34868E6E /* SessionMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EF5F0C7F27F6385FF395D2 /* SessionMetrics.swift */; };
+		3FC2D87E91684B2EAD4B24B6 /* ScoreImportDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A292DF0F8C64646FC53B3B1F /* ScoreImportDetailsView.swift */; };
+		4766C9A441E8A10775E72F1F /* TempoStorePlaybackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F924CEB16CA00F41428B784 /* TempoStorePlaybackTests.swift */; };
+		4C3624309BEDFA2D7F6E2FCF /* VerovioToolkit in Frameworks */ = {isa = PBXBuildFile; productRef = DD4E53CCEE602233947338BB /* VerovioToolkit */; };
+		4DC5F22A97BAB9068F7D1915 /* PianoPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFBD34F107CE3EAC1FD073D9 /* PianoPlaybackService.swift */; };
+		52AE6A30EFB0F09E2B2EC0B2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A01F8DE22859252DD219FFE /* SettingsView.swift */; };
+		55AF5AC275D36C77016085C4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047223DA27E410389A67F786 /* ContentView.swift */; };
+		58EA9AE16C347F5B0B0FF096 /* TempoLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */; };
+		5D5D8B4FA2CD2BD1BFA43A3C /* autumn.png in Resources */ = {isa = PBXBuildFile; fileRef = 68215D7942154851D475EB74 /* autumn.png */; };
+		6509042207DE7F04E4E5DC41 /* LibraryScoreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */; };
+		6AF7F78714B209212E1C7687 /* MIDIConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */; };
+		6F2DD1F863BC9B24658F7BA8 /* ScoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4728EE9AFF382BE5AF16312 /* ScoreModels.swift */; };
+		77C33B52997BFB89550152CD /* PracticeWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21999C69A782FA553E6EC6A1 /* PracticeWorkspaceView.swift */; };
+		8D5E022B49F467D6FE2F3FC6 /* LibraryControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39D4C08844BF0E12D04FF12 /* LibraryControls.swift */; };
+		96608840209F52C8DAC06DCD /* PianoKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB7F5B99ABED7523BCD7083 /* PianoKeyboardView.swift */; };
+		A066FDE648FF2D5ADAB84C4B /* PracticeToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32CB3B6D44BF10CDA007AE4 /* PracticeToolbar.swift */; };
+		A1C9399E0BE539CC5C765B23 /* TempoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5290255801B8AE30A0816767 /* TempoStore.swift */; };
+		A7CF326D010B508D106A3C05 /* ScoreTimelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581CB7A31F9C4E07B7860968 /* ScoreTimelineTests.swift */; };
+		ACF8F84A85941FD4084839F2 /* MIDIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82664E7A32CD84FD686B8AD8 /* MIDIService.swift */; };
+		AE5314C5233C71D9AC698677 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 38ECABEBA9DE5FD43B3F6893 /* ZIPFoundation */; };
+		AFBA13D0FDDEDD5817BD3543 /* nocturne.png in Resources */ = {isa = PBXBuildFile; fileRef = 6FB6F34594E2951A39D8170D /* nocturne.png */; };
+		B274DD2CF92A747E96666D13 /* FeedbackPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A73EFFC7E25209E4206114C /* FeedbackPanel.swift */; };
+		BE1108DD7EEE63CE2863B10B /* sonata.png in Resources */ = {isa = PBXBuildFile; fileRef = A187A842C8B996C0D99FFA51 /* sonata.png */; };
+		C1C6BA513FE6A1AD62A9AE23 /* TempoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44EC78157D9994748BE04940 /* TempoApp.swift */; };
+		C4246E8A964D4E190EC99E32 /* TempoCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F8DBEB1A80F03BB4F9053E /* TempoCommands.swift */; };
+		CC393E36AAED4E8687CD6108 /* moonlit.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CA57BA433EE1F0B76C3992C /* moonlit.png */; };
+		D3FA82EDC883C8FA567AEE44 /* VerovioScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BF6DB6C8A7EEB5B300EDC3 /* VerovioScoreView.swift */; };
+		DBC61644A4011A63A309F07C /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6C3DA77AF023D6DD0B5D6 /* SidebarView.swift */; };
+		DEB8CF6C0CE1FF6D41E73F3E /* MusicXMLScoreParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D497E89F745D8944A395AC /* MusicXMLScoreParserTests.swift */; };
+		F19115DD137C133CEA785DC3 /* PracticeTitleBarAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46DFC341139E3E5275D52ED8 /* PracticeTitleBarAccessory.swift */; };
+		F51B66C284C6D42F88733204 /* TempoTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9E05CC100C8E4F3CA40065 /* TempoTheme.swift */; };
+		FFA25025BE6F5B5156B9BEB1 /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB05817162115D7E031A8C7 /* PairingView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5686D52CB9B7A408A45BB569 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AD30179AB18F679D26066274 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B4B1ABCA42D941961C207402;
+			remoteInfo = Tempo;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		047223DA27E410389A67F786 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0CB7F5B99ABED7523BCD7083 /* PianoKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoKeyboardView.swift; sourceTree = "<group>"; };
+		1A01F8DE22859252DD219FFE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1B6A9BC3D1C7092C43ECF73F /* VerovioSourceIDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerovioSourceIDTests.swift; sourceTree = "<group>"; };
+		1EE6C3DA77AF023D6DD0B5D6 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		21999C69A782FA553E6EC6A1 /* PracticeWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeWorkspaceView.swift; sourceTree = "<group>"; };
+		2A7876FBC1A486BCF089AE92 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		3C6A23D8AC54D4606E534884 /* SessionReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionReviewView.swift; sourceTree = "<group>"; };
+		3C9E05CC100C8E4F3CA40065 /* TempoTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoTheme.swift; sourceTree = "<group>"; };
+		44EC78157D9994748BE04940 /* TempoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoApp.swift; sourceTree = "<group>"; };
+		46DFC341139E3E5275D52ED8 /* PracticeTitleBarAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeTitleBarAccessory.swift; sourceTree = "<group>"; };
+		46EF5F0C7F27F6385FF395D2 /* SessionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMetrics.swift; sourceTree = "<group>"; };
+		4CA57BA433EE1F0B76C3992C /* moonlit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moonlit.png; sourceTree = "<group>"; };
+		4F924CEB16CA00F41428B784 /* TempoStorePlaybackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoStorePlaybackTests.swift; sourceTree = "<group>"; };
+		50E657BBD64E5D4433C304C1 /* TransportControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportControls.swift; sourceTree = "<group>"; };
+		518164B1228AEB85062D560D /* ScoreArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreArtworkView.swift; sourceTree = "<group>"; };
+		5290255801B8AE30A0816767 /* TempoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoStore.swift; sourceTree = "<group>"; };
+		581CB7A31F9C4E07B7860968 /* ScoreTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreTimelineTests.swift; sourceTree = "<group>"; };
+		58C858F2445E580CDFA63CB9 /* LibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreTests.swift; sourceTree = "<group>"; };
+		621B168D177CAEF62C009206 /* SessionMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMetricsTests.swift; sourceTree = "<group>"; };
+		625A82B113EADC22BC690DD2 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		68215D7942154851D475EB74 /* autumn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = autumn.png; sourceTree = "<group>"; };
+		6FB6F34594E2951A39D8170D /* nocturne.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nocturne.png; sourceTree = "<group>"; };
+		78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIConnectionView.swift; sourceTree = "<group>"; };
+		7D2477231F540EB1BD7694F0 /* MIDIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIServiceTests.swift; sourceTree = "<group>"; };
+		82664E7A32CD84FD686B8AD8 /* MIDIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIService.swift; sourceTree = "<group>"; };
+		86F9FBC73E954F1F87C43D4A /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		8A73EFFC7E25209E4206114C /* FeedbackPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackPanel.swift; sourceTree = "<group>"; };
+		95BF6DB6C8A7EEB5B300EDC3 /* VerovioScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerovioScoreView.swift; sourceTree = "<group>"; };
+		97F8DBEB1A80F03BB4F9053E /* TempoCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoCommands.swift; sourceTree = "<group>"; };
+		9BEC4100791175DCD5B1BDFA /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		9D2CFFDC6309AD840D790033 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
+		A187A842C8B996C0D99FFA51 /* sonata.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sonata.png; sourceTree = "<group>"; };
+		A292DF0F8C64646FC53B3B1F /* ScoreImportDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreImportDetailsView.swift; sourceTree = "<group>"; };
+		AAD930357354B5A8F8BB202A /* NavigationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationModels.swift; sourceTree = "<group>"; };
+		AE6263597B3354C508BBC7D4 /* Tempo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tempo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDAF2DBAAF0BAC586CEB2624 /* PreviewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFixtures.swift; sourceTree = "<group>"; };
+		C3D497E89F745D8944A395AC /* MusicXMLScoreParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicXMLScoreParserTests.swift; sourceTree = "<group>"; };
+		D01ECFC8202A52963094E389 /* MusicXMLScoreParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicXMLScoreParser.swift; sourceTree = "<group>"; };
+		D39D4C08844BF0E12D04FF12 /* LibraryControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryControls.swift; sourceTree = "<group>"; };
+		D57F97E834A8A30DB9CAE89B /* TempoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TempoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4728EE9AFF382BE5AF16312 /* ScoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreModels.swift; sourceTree = "<group>"; };
+		EFB05817162115D7E031A8C7 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
+		F32CB3B6D44BF10CDA007AE4 /* PracticeToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeToolbar.swift; sourceTree = "<group>"; };
+		F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoLogo.swift; sourceTree = "<group>"; };
+		F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScoreCard.swift; sourceTree = "<group>"; };
+		FFBD34F107CE3EAC1FD073D9 /* PianoPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoPlaybackService.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		01D67FA7CD498405BE72BD2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C3624309BEDFA2D7F6E2FCF /* VerovioToolkit in Frameworks */,
+				AE5314C5233C71D9AC698677 /* ZIPFoundation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		18505C54FFBE36FE8178F023 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				82664E7A32CD84FD686B8AD8 /* MIDIService.swift */,
+				D01ECFC8202A52963094E389 /* MusicXMLScoreParser.swift */,
+				FFBD34F107CE3EAC1FD073D9 /* PianoPlaybackService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		40AE1059049DCC06F8E4F519 /* TempoTests */ = {
+			isa = PBXGroup;
+			children = (
+				58C858F2445E580CDFA63CB9 /* LibraryStoreTests.swift */,
+				7D2477231F540EB1BD7694F0 /* MIDIServiceTests.swift */,
+				C3D497E89F745D8944A395AC /* MusicXMLScoreParserTests.swift */,
+				581CB7A31F9C4E07B7860968 /* ScoreTimelineTests.swift */,
+				621B168D177CAEF62C009206 /* SessionMetricsTests.swift */,
+				4F924CEB16CA00F41428B784 /* TempoStorePlaybackTests.swift */,
+				1B6A9BC3D1C7092C43ECF73F /* VerovioSourceIDTests.swift */,
+			);
+			path = TempoTests;
+			sourceTree = "<group>";
+		};
+		551138FD8DA4B1DC4CE1CC90 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AE6263597B3354C508BBC7D4 /* Tempo.app */,
+				D57F97E834A8A30DB9CAE89B /* TempoTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		79FDDFC99F7270F9A5D756BD /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AAD930357354B5A8F8BB202A /* NavigationModels.swift */,
+				9D2CFFDC6309AD840D790033 /* Piece.swift */,
+				E4728EE9AFF382BE5AF16312 /* ScoreModels.swift */,
+				46EF5F0C7F27F6385FF395D2 /* SessionMetrics.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		93935E517C8A0946CFCF7B9D = {
+			isa = PBXGroup;
+			children = (
+				D8FDA2DD58911B41385E097A /* Sources */,
+				C10EF69543941D8FC462873A /* Tests */,
+				551138FD8DA4B1DC4CE1CC90 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		960B2B30D3C2738803889E21 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				8A73EFFC7E25209E4206114C /* FeedbackPanel.swift */,
+				D39D4C08844BF0E12D04FF12 /* LibraryControls.swift */,
+				F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */,
+				78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */,
+				EFB05817162115D7E031A8C7 /* PairingView.swift */,
+				0CB7F5B99ABED7523BCD7083 /* PianoKeyboardView.swift */,
+				46DFC341139E3E5275D52ED8 /* PracticeTitleBarAccessory.swift */,
+				F32CB3B6D44BF10CDA007AE4 /* PracticeToolbar.swift */,
+				518164B1228AEB85062D560D /* ScoreArtworkView.swift */,
+				1EE6C3DA77AF023D6DD0B5D6 /* SidebarView.swift */,
+				F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */,
+				50E657BBD64E5D4433C304C1 /* TransportControls.swift */,
+				95BF6DB6C8A7EEB5B300EDC3 /* VerovioScoreView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		9E44F9B88AB351AD6467EAE8 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				2A7876FBC1A486BCF089AE92 /* HomeView.swift */,
+				9BEC4100791175DCD5B1BDFA /* LibraryView.swift */,
+				21999C69A782FA553E6EC6A1 /* PracticeWorkspaceView.swift */,
+				625A82B113EADC22BC690DD2 /* ProgressView.swift */,
+				A292DF0F8C64646FC53B3B1F /* ScoreImportDetailsView.swift */,
+				3C6A23D8AC54D4606E534884 /* SessionReviewView.swift */,
+				1A01F8DE22859252DD219FFE /* SettingsView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		A7AEA418D4B81761780708C3 /* Tempo */ = {
+			isa = PBXGroup;
+			children = (
+				EA40683C3674BBBD3F4320E1 /* App */,
+				79FDDFC99F7270F9A5D756BD /* Models */,
+				DB851827D78B4578AA8AD018 /* Resources */,
+				18505C54FFBE36FE8178F023 /* Services */,
+				D0800215A902EDF8A758B711 /* Stores */,
+				C5B5E2B26F0089C48BE76CCD /* Support */,
+				BFD1E6B2983ECEE7FD0960E2 /* Views */,
+			);
+			path = Tempo;
+			sourceTree = "<group>";
+		};
+		BFD1E6B2983ECEE7FD0960E2 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				047223DA27E410389A67F786 /* ContentView.swift */,
+				960B2B30D3C2738803889E21 /* Components */,
+				9E44F9B88AB351AD6467EAE8 /* Screens */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C10EF69543941D8FC462873A /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				40AE1059049DCC06F8E4F519 /* TempoTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		C5B5E2B26F0089C48BE76CCD /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				86F9FBC73E954F1F87C43D4A /* Formatters.swift */,
+				BDAF2DBAAF0BAC586CEB2624 /* PreviewFixtures.swift */,
+				97F8DBEB1A80F03BB4F9053E /* TempoCommands.swift */,
+				3C9E05CC100C8E4F3CA40065 /* TempoTheme.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		D0800215A902EDF8A758B711 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				5290255801B8AE30A0816767 /* TempoStore.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		D102723607DD3F4A329CEEF7 /* ArtworkPresets */ = {
+			isa = PBXGroup;
+			children = (
+				68215D7942154851D475EB74 /* autumn.png */,
+				4CA57BA433EE1F0B76C3992C /* moonlit.png */,
+				6FB6F34594E2951A39D8170D /* nocturne.png */,
+				A187A842C8B996C0D99FFA51 /* sonata.png */,
+			);
+			path = ArtworkPresets;
+			sourceTree = "<group>";
+		};
+		D8FDA2DD58911B41385E097A /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A7AEA418D4B81761780708C3 /* Tempo */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		DB851827D78B4578AA8AD018 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D102723607DD3F4A329CEEF7 /* ArtworkPresets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		EA40683C3674BBBD3F4320E1 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				44EC78157D9994748BE04940 /* TempoApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B4B1ABCA42D941961C207402 /* Tempo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4FE7A9862C48352D13895373 /* Build configuration list for PBXNativeTarget "Tempo" */;
+			buildPhases = (
+				F8BECD3B83F1BDE402E1832A /* Sources */,
+				99E67F85FA1E5FB50DAA3ABA /* Resources */,
+				01D67FA7CD498405BE72BD2D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tempo;
+			packageProductDependencies = (
+				DD4E53CCEE602233947338BB /* VerovioToolkit */,
+				38ECABEBA9DE5FD43B3F6893 /* ZIPFoundation */,
+			);
+			productName = Tempo;
+			productReference = AE6263597B3354C508BBC7D4 /* Tempo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C337B61AC76E84E27EF729D6 /* TempoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68B3E3DE0818150843E75C44 /* Build configuration list for PBXNativeTarget "TempoTests" */;
+			buildPhases = (
+				2FA10C5E5FAA1BCAD0D7DAE4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A8CC82F224EE8C8583190147 /* PBXTargetDependency */,
+			);
+			name = TempoTests;
+			packageProductDependencies = (
+			);
+			productName = TempoTests;
+			productReference = D57F97E834A8A30DB9CAE89B /* TempoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AD30179AB18F679D26066274 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					B4B1ABCA42D941961C207402 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A3328757661089AFC83B412A /* Build configuration list for PBXProject "Tempo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 93935E517C8A0946CFCF7B9D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B03E43788F0240BFE3D48AEF /* XCRemoteSwiftPackageReference "verovio" */,
+				4D33C40524F6D8131FAF6639 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B4B1ABCA42D941961C207402 /* Tempo */,
+				C337B61AC76E84E27EF729D6 /* TempoTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		99E67F85FA1E5FB50DAA3ABA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D5D8B4FA2CD2BD1BFA43A3C /* autumn.png in Resources */,
+				CC393E36AAED4E8687CD6108 /* moonlit.png in Resources */,
+				AFBA13D0FDDEDD5817BD3543 /* nocturne.png in Resources */,
+				BE1108DD7EEE63CE2863B10B /* sonata.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2FA10C5E5FAA1BCAD0D7DAE4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2EF0339A361153FC06F0D9B2 /* LibraryStoreTests.swift in Sources */,
+				08A0E6182D8B4A6A4B64D6C3 /* MIDIServiceTests.swift in Sources */,
+				DEB8CF6C0CE1FF6D41E73F3E /* MusicXMLScoreParserTests.swift in Sources */,
+				A7CF326D010B508D106A3C05 /* ScoreTimelineTests.swift in Sources */,
+				0707C67F973222DB636BF75E /* SessionMetricsTests.swift in Sources */,
+				4766C9A441E8A10775E72F1F /* TempoStorePlaybackTests.swift in Sources */,
+				032A2743B9AF780FDEF7183B /* VerovioSourceIDTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8BECD3B83F1BDE402E1832A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55AF5AC275D36C77016085C4 /* ContentView.swift in Sources */,
+				B274DD2CF92A747E96666D13 /* FeedbackPanel.swift in Sources */,
+				13FDDC855D41A1CAF68DE2E3 /* Formatters.swift in Sources */,
+				2B51FF5A188B7EC7B7A9822D /* HomeView.swift in Sources */,
+				8D5E022B49F467D6FE2F3FC6 /* LibraryControls.swift in Sources */,
+				6509042207DE7F04E4E5DC41 /* LibraryScoreCard.swift in Sources */,
+				0CCA8211E465CECD30DB7EEC /* LibraryView.swift in Sources */,
+				6AF7F78714B209212E1C7687 /* MIDIConnectionView.swift in Sources */,
+				ACF8F84A85941FD4084839F2 /* MIDIService.swift in Sources */,
+				1340F7A80936BA17A48E7C77 /* MusicXMLScoreParser.swift in Sources */,
+				33F3EC2FBFE2744CD204D51C /* NavigationModels.swift in Sources */,
+				FFA25025BE6F5B5156B9BEB1 /* PairingView.swift in Sources */,
+				96608840209F52C8DAC06DCD /* PianoKeyboardView.swift in Sources */,
+				4DC5F22A97BAB9068F7D1915 /* PianoPlaybackService.swift in Sources */,
+				0C2DC8BF253D3F4110AB09EE /* Piece.swift in Sources */,
+				F19115DD137C133CEA785DC3 /* PracticeTitleBarAccessory.swift in Sources */,
+				A066FDE648FF2D5ADAB84C4B /* PracticeToolbar.swift in Sources */,
+				77C33B52997BFB89550152CD /* PracticeWorkspaceView.swift in Sources */,
+				0663699B7185E9E2A3DFAE64 /* PreviewFixtures.swift in Sources */,
+				1A75D1D0B67D00BA2C6222B4 /* ProgressView.swift in Sources */,
+				281A1DBC113B312ACAF45EC1 /* ScoreArtworkView.swift in Sources */,
+				3FC2D87E91684B2EAD4B24B6 /* ScoreImportDetailsView.swift in Sources */,
+				6F2DD1F863BC9B24658F7BA8 /* ScoreModels.swift in Sources */,
+				3CC16D267A0F84AB34868E6E /* SessionMetrics.swift in Sources */,
+				1D0830D858A05950C18A85F6 /* SessionReviewView.swift in Sources */,
+				52AE6A30EFB0F09E2B2EC0B2 /* SettingsView.swift in Sources */,
+				DBC61644A4011A63A309F07C /* SidebarView.swift in Sources */,
+				C1C6BA513FE6A1AD62A9AE23 /* TempoApp.swift in Sources */,
+				C4246E8A964D4E190EC99E32 /* TempoCommands.swift in Sources */,
+				58EA9AE16C347F5B0B0FF096 /* TempoLogo.swift in Sources */,
+				A1C9399E0BE539CC5C765B23 /* TempoStore.swift in Sources */,
+				F51B66C284C6D42F88733204 /* TempoTheme.swift in Sources */,
+				1E0294461D569FCBDEF54F7B /* TransportControls.swift in Sources */,
+				D3FA82EDC883C8FA567AEE44 /* VerovioScoreView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A8CC82F224EE8C8583190147 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B4B1ABCA42D941961C207402 /* Tempo */;
+			targetProxy = 5686D52CB9B7A408A45BB569 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2F94FC066E934C1EDF0C22F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tempo;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.auax.tempo;
+				PRODUCT_NAME = Tempo;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		316B2AAA913C5EA0FC6B8F89 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		84B60CC7AAE0C71B27EACE2F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.auax.tempo.tests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tempo.app/Contents/MacOS/Tempo";
+			};
+			name = Debug;
+		};
+		A43E8332B4882646B3660D8E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C4BB3300C35869F601FE5EED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Tempo;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.auax.tempo;
+				PRODUCT_NAME = Tempo;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CAF8959E515D8230B945CAB1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.auax.tempo.tests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tempo.app/Contents/MacOS/Tempo";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4FE7A9862C48352D13895373 /* Build configuration list for PBXNativeTarget "Tempo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4BB3300C35869F601FE5EED /* Debug */,
+				2F94FC066E934C1EDF0C22F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		68B3E3DE0818150843E75C44 /* Build configuration list for PBXNativeTarget "TempoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84B60CC7AAE0C71B27EACE2F /* Debug */,
+				CAF8959E515D8230B945CAB1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A3328757661089AFC83B412A /* Build configuration list for PBXProject "Tempo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A43E8332B4882646B3660D8E /* Debug */,
+				316B2AAA913C5EA0FC6B8F89 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4D33C40524F6D8131FAF6639 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.9.20;
+			};
+		};
+		B03E43788F0240BFE3D48AEF /* XCRemoteSwiftPackageReference "verovio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rism-digital/verovio.git";
+			requirement = {
+				kind = revision;
+				revision = 43f806031bfff2c64003fc8ddd9910820445f6ab;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		38ECABEBA9DE5FD43B3F6893 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D33C40524F6D8131FAF6639 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+		DD4E53CCEE602233947338BB /* VerovioToolkit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B03E43788F0240BFE3D48AEF /* XCRemoteSwiftPackageReference "verovio" */;
+			productName = VerovioToolkit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AD30179AB18F679D26066274 /* Project object */;
+}

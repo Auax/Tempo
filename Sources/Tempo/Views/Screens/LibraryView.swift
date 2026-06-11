@@ -127,93 +127,14 @@ struct LibraryView: View {
     }
 
     private var allScoresView: some View {
-        HStack(alignment: .top, spacing: 0) {
-            scoreResults(for: store.filteredPieces)
+        VStack(spacing: 0) {
+            LibraryFilterControls(store: store)
+                .padding(.horizontal, TempoTheme.Spacing.xLarge)
+                .padding(.top, TempoTheme.Spacing.small)
 
-            filters
-                .frame(width: TempoTheme.Layout.libraryFilterWidth)
+            scoreResults(for: store.filteredPieces)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var filters: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TempoTheme.Spacing.xLarge) {
-                filterSection("Library") {
-                    ForEach(LibraryQuickFilter.allCases) { filter in
-                        Button {
-                            store.libraryQuickFilter = filter
-                        } label: {
-                            HStack {
-                                Image(systemName: filter.symbol)
-                                    .frame(width: TempoTheme.Spacing.xLarge)
-                                Text(filter.rawValue)
-                                Spacer()
-                                Text(quickFilterCount(filter), format: .number)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .font(.headline.weight(.medium))
-                            .padding(.horizontal, TempoTheme.Spacing.medium)
-                            .frame(height: TempoTheme.Layout.controlHeight)
-                            .background(
-                                store.libraryQuickFilter == filter
-                                    ? Color.tempoBlue.opacity(0.13)
-                                    : .clear,
-                                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.small)
-                            )
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                Divider()
-
-                filterSection("Difficulty") {
-                    ForEach(PieceDifficulty.allCases) { difficulty in
-                        filterToggle(
-                            difficulty.rawValue,
-                            count: store.pieces.filter {
-                                $0.difficulty == difficulty.rawValue
-                            }.count,
-                            isOn: store.selectedDifficulties.contains(difficulty.rawValue)
-                        ) {
-                            toggle(difficulty.rawValue, in: &store.selectedDifficulties)
-                        }
-                    }
-                }
-
-                Divider()
-
-                filterSection("Genres") {
-                    ForEach(PieceGenre.allCases) { genre in
-                        filterToggle(
-                            genre.rawValue,
-                            count: store.pieces.filter { $0.genre == genre.rawValue }.count,
-                            isOn: store.selectedGenres.contains(genre.rawValue)
-                        ) {
-                            toggle(genre.rawValue, in: &store.selectedGenres)
-                        }
-                    }
-                }
-
-                Button {
-                    store.clearLibraryFilters()
-                } label: {
-                    Text("Clear Filters")
-                        .frame(maxWidth: .infinity)
-                }
-                .tempoBorderedButton()
-                .frame(maxWidth: .infinity)
-                .disabled(!hasActiveFilters)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, TempoTheme.Spacing.xLarge)
-            .padding(.top, TempoTheme.Spacing.xLarge)
-            .padding(.bottom, TempoTheme.Spacing.xLarge)
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     @ViewBuilder
@@ -250,12 +171,14 @@ struct LibraryView: View {
                     spacing: TempoTheme.Spacing.large
                 )
             ],
+            alignment: .leading,
             spacing: TempoTheme.Spacing.large
         ) {
             ForEach(pieces) { piece in
                 LibraryScoreCard(piece: piece, store: store)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
@@ -468,12 +391,6 @@ struct LibraryView: View {
         }
     }
 
-    private var hasActiveFilters: Bool {
-        store.libraryQuickFilter != .all
-            || !store.selectedDifficulties.isEmpty
-            || !store.selectedGenres.isEmpty
-    }
-
     private func sectionCount(_ section: LibrarySection) -> Int {
         switch section {
         case .allScores: store.pieces.count
@@ -481,62 +398,11 @@ struct LibraryView: View {
         case .composers: store.composers.count
         }
     }
-
-    private func quickFilterCount(_ filter: LibraryQuickFilter) -> Int {
-        switch filter {
-        case .all:
-            store.pieces.count
-        case .recent:
-            store.pieces.filter {
-                Calendar.current.dateComponents(
-                    [.day],
-                    from: $0.lastPracticed,
-                    to: .now
-                ).day ?? 0 <= 30
-            }.count
-        case .favorites:
-            store.pieces.filter(\.isFavorite).count
-        }
-    }
-
-    private func filterSection<Content: View>(
-        _ title: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            content()
-        }
-    }
-
-    private func filterToggle(
-        _ title: String,
-        count: Int,
-        isOn: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: isOn ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(isOn ? Color.tempoBlue : .secondary)
-                Text(title)
-                Spacer()
-                Text(count, format: .number)
-                    .foregroundStyle(.secondary)
-            }
-            .font(.headline.weight(.medium))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func toggle(_ value: String, in set: inout Set<String>) {
-        if set.contains(value) {
-            set.remove(value)
-        } else {
-            set.insert(value)
-        }
-    }
 }
+
+#if DEBUG
+#Preview("Library") {
+    LibraryView(store: PreviewFixtures.store())
+        .frame(width: 1_080, height: 760)
+}
+#endif

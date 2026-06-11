@@ -1,6 +1,47 @@
 import SwiftUI
 import AppKit
 
+enum TempoAppearance: String, CaseIterable, Identifiable {
+    case system
+    case light
+    case dark
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .system:
+            "System"
+        case .light:
+            "Light"
+        case .dark:
+            "Dark"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .system:
+            "circle.lefthalf.filled"
+        case .light:
+            "sun.max"
+        case .dark:
+            "moon"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            nil
+        case .light:
+            .light
+        case .dark:
+            .dark
+        }
+    }
+}
+
 struct TempoGlassBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
@@ -106,7 +147,8 @@ extension Color {
     )
     static let tempoControlSurface = Color(
         light: NSColor(calibratedWhite: 1.0, alpha: 1.0),
-        dark: NSColor(calibratedRed: 0.11, green: 0.12, blue: 0.14, alpha: 1.0)
+        dark: NSColor(calibratedRed: 35.0 / 255.0, green: 35.0 / 255.0, blue: 35.0 / 255.0, alpha: 1.0
+)
     )
     static let tempoControlBorder = Color(
         light: NSColor(calibratedWhite: 0.0, alpha: 0.10),
@@ -197,7 +239,7 @@ extension View {
     func tempoCard(padding: CGFloat = TempoTheme.Spacing.large) -> some View {
         self
             .padding(padding)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.large))
+            .background(Color.tempoControlSurface, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.large))
             .overlay {
                 RoundedRectangle(cornerRadius: TempoTheme.Radius.large)
                     .stroke(.primary.opacity(0.08), lineWidth: 1)

@@ -131,3 +131,11 @@ private extension Array {
         firstIndex(where: predicate) ?? endIndex
     }
 }
+
+#if DEBUG
+#Preview("Piano Keyboard") {
+    PianoKeyboardView(store: PreviewFixtures.store(practicing: true))
+        .padding()
+        .frame(width: 1_080)
+}
+#endif

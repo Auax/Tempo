@@ -28,6 +28,9 @@ let package = Package(
                 .product(name: "ZIPFoundation", package: "ZIPFoundation")
             ],
             path: "Sources/Tempo",
+            resources: [
+                .process("Resources")
+            ],
             linkerSettings: [
                 .linkedFramework("CoreMIDI"),
                 .linkedFramework("WebKit")

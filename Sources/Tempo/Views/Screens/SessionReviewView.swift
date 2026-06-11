@@ -68,3 +68,9 @@ private struct ReviewMetric: View {
         .tempoCard()
     }
 }
+
+#if DEBUG
+#Preview("Session Review") {
+    SessionReviewView(store: PreviewFixtures.store(practicing: true, withSession: true))
+}
+#endif

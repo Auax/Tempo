@@ -89,3 +89,9 @@ private struct PairingCodeView: View {
         .accessibilityLabel("Pairing code TEMPO-42")
     }
 }
+
+#if DEBUG
+#Preview("Companion Pairing") {
+    PairingView(midiName: "Digital Piano")
+}
+#endif

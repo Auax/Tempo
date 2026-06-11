@@ -38,3 +38,17 @@ struct PracticeTitleBarRow: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
+#if DEBUG
+#Preview("Practice Title Bar") {
+    PracticeTitleBarRow(
+        store: PreviewFixtures.store(practicing: true),
+        sidebarWidth: TempoTheme.Layout.sidebarExpanded,
+        sidebarCollapsed: false,
+        inspectorWidth: TempoTheme.Layout.inspectorWidth,
+        showsInspector: true,
+        focusMode: false
+    )
+    .frame(width: 1_360, height: 52)
+}
+#endif

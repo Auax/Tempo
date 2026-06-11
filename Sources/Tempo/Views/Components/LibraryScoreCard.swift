@@ -3,55 +3,53 @@ import SwiftUI
 struct LibraryScoreCard: View {
     let piece: Piece
     @Bindable var store: TempoStore
+    @State private var isHovered = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
-            ZStack(alignment: .topLeading) {
-                Button {
-                    store.selectPiece(piece, startPractice: true)
-                } label: {
-                    ScoreGradientArtwork(piece: piece)
-                }
-                .buttonStyle(.plain)
+        ZStack(alignment: .top) {
+            Button {
+                store.selectPiece(piece, startPractice: true)
+            } label: {
+                ScoreArtworkView(
+                    title: piece.title,
+                    composer: piece.composer,
+                    artwork: piece.artwork,
+                    difficulty: piece.difficulty,
+                    genre: piece.genre,
+                    scorePath: piece.scorePath
+                )
+            }
+            .buttonStyle(.plain)
 
+            HStack {
                 Button {
                     store.toggleFavorite(piece.id)
                 } label: {
                     Image(systemName: piece.isFavorite ? "star.fill" : "star")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(
-                            piece.isFavorite ? Color.tempoOrange : .white.opacity(0.75)
-                        )
-                        .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
-                        .padding(9)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.tempoBlue)
+                        .shadow(color: .black.opacity(0.28), radius: 2, x: 0, y: 1)
+                        .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-            }
+                .help(piece.isFavorite ? "Remove from Favorites" : "Add to Favorites")
 
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
-                    Text(piece.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: TempoTheme.Spacing.xSmall)
+                Spacer()
+
                 LibraryPieceMenu(piece: piece, store: store)
+                    .colorScheme(.dark)
+                    .frame(width: 30, height: 30)
+                    .background(.black.opacity(0.2), in: Circle())
+                    .opacity(isHovered ? 1 : 0)
+                    .allowsHitTesting(isHovered)
             }
-
-            Text("\(piece.difficulty)  •  \(piece.genre)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .padding(10)
         }
-        .padding(TempoTheme.Spacing.large)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
-        .overlay {
-            RoundedRectangle(cornerRadius: TempoTheme.Radius.medium)
-                .stroke(.primary.opacity(0.08))
+        .onHover { hovering in
+            withAnimation(TempoTheme.Motion.quick) {
+                isHovered = hovering
+            }
         }
     }
 }
@@ -88,6 +86,12 @@ struct LibraryPieceMenu: View {
                 }
             }
 
+            Button {
+                store.editPiece(piece)
+            } label: {
+                Label("Edit Score", systemImage: "pencil")
+            }
+
             Divider()
 
             Button(role: .destructive) {
@@ -115,3 +119,22 @@ struct LibraryPieceMenu: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Library Score Card") {
+    LibraryScoreCard(
+        piece: PreviewFixtures.piece,
+        store: PreviewFixtures.store()
+    )
+    .padding()
+    .frame(width: 300)
+}
+
+#Preview("Library Piece Menu") {
+    LibraryPieceMenu(
+        piece: PreviewFixtures.piece,
+        store: PreviewFixtures.store()
+    )
+    .padding()
+}
+#endif
