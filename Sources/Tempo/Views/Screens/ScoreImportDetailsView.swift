@@ -16,6 +16,7 @@ struct ScoreImportDetailsView: View {
     @State private var artwork = ScoreArtwork.default
     @State private var customArtworkData: Data?
     @State private var showingArtworkImporter = false
+    @State private var isSaving = false
 
     init(store: TempoStore, pendingImport: PendingScoreImport) {
         self.store = store
@@ -208,11 +209,14 @@ struct ScoreImportDetailsView: View {
                 }
                 .tempoBorderedButton()
                 Button(primaryActionTitle) {
-                    save()
-                    dismiss()
+                    Task {
+                        isSaving = true
+                        await save()
+                        dismiss()
+                    }
                 }
                 .tempoProminentButton()
-                .disabled(!canImport)
+                .disabled(!canImport || isSaving)
             }
         }
         .padding(28)
@@ -489,7 +493,7 @@ struct ScoreImportDetailsView: View {
         artwork.customImagePath = nil
     }
 
-    private func save() {
+    private func save() async {
         if let editingPiece {
             store.finishEditing(
                 pieceID: editingPiece.id,
@@ -502,7 +506,7 @@ struct ScoreImportDetailsView: View {
                 customArtworkData: customArtworkData
             )
         } else {
-            store.finishImport(
+            await store.finishImport(
                 title: title,
                 composer: composer,
                 difficulty: difficulty,

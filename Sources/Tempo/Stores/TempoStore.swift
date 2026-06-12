@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -330,6 +331,11 @@ final class TempoStore {
                 at: URL(fileURLWithPath: artworkPath)
             )
         }
+        if let previewImagePath = piece.previewImagePath {
+            try? FileManager.default.removeItem(
+                at: URL(fileURLWithPath: previewImagePath)
+            )
+        }
     }
 
     func prepareImport(_ url: URL) {
@@ -363,19 +369,26 @@ final class TempoStore {
         folderID: ScoreFolder.ID?,
         artwork: ScoreArtwork,
         customArtworkData: Data?
-    ) {
+    ) async {
         guard let pendingImport else { return }
         let parsed = pendingImport.parsedScore
+        let pieceID = UUID()
         var storedArtwork = artwork
         if let customArtworkData {
             storedArtwork.customImagePath = saveArtworkImage(customArtworkData)?.path
         }
+        let previewImagePath = await ScorePreviewRenderer.renderAndSave(
+            xml: parsed.xml,
+            identifier: pieceID
+        )?.path
         let piece = Piece(
+            id: pieceID,
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             composer: composer.trimmingCharacters(in: .whitespacesAndNewlines),
             collection: pendingImport.storedURL.pathExtension.uppercased(),
             fileName: pendingImport.originalFileName,
             scorePath: pendingImport.storedURL.path,
+            previewImagePath: previewImagePath,
             progress: 0,
             bestAccuracy: 0,
             difficulty: difficulty.rawValue,
@@ -398,6 +411,44 @@ final class TempoStore {
         selectPiece(piece)
         destination = .library
         isPracticeWorkspacePresented = false
+    }
+
+    func scorePreviewImage(for pieceID: Piece.ID) async -> NSImage? {
+        guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else {
+            return nil
+        }
+
+        let piece = pieces[index]
+        let previousPreviewPath = piece.previewImagePath
+        if let previewImagePath = piece.previewImagePath,
+           URL(fileURLWithPath: previewImagePath)
+            .lastPathComponent
+            .hasSuffix("-preview-v4.png"),
+           let image = NSImage(contentsOfFile: previewImagePath) {
+            return image
+        }
+        guard let scorePath = piece.scorePath else { return nil }
+
+        guard
+            let renderedURL = await ScorePreviewRenderer.renderAndSave(
+                scorePath: scorePath,
+                identifier: piece.id
+            ),
+            let renderedImage = NSImage(contentsOf: renderedURL),
+            let currentIndex = pieces.firstIndex(where: { $0.id == pieceID })
+        else {
+            return nil
+        }
+
+        pieces[currentIndex].previewImagePath = renderedURL.path
+        persistPieces()
+        if let previousPreviewPath,
+           previousPreviewPath != renderedURL.path {
+            try? FileManager.default.removeItem(
+                at: URL(fileURLWithPath: previousPreviewPath)
+            )
+        }
+        return renderedImage
     }
 
     func cancelImport() {

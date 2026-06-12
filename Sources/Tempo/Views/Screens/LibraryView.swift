@@ -155,7 +155,8 @@ struct LibraryView: View {
             ScrollView {
                 libraryScoresGrid(pieces)
             }
-            .padding(TempoTheme.Spacing.xLarge)
+            .padding(.horizontal, TempoTheme.Spacing.xLarge)
+            .padding(.top, TempoTheme.Spacing.xLarge)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
@@ -175,7 +176,7 @@ struct LibraryView: View {
             spacing: TempoTheme.Spacing.large
         ) {
             ForEach(pieces) { piece in
-                LibraryScoreCard(piece: piece, store: store)
+                SheetMusicCard(piece: piece, store: store)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

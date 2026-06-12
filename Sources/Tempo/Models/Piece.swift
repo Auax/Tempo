@@ -178,6 +178,7 @@ struct Piece: Identifiable, Codable, Hashable {
     var collection: String
     var fileName: String?
     var scorePath: String?
+    var previewImagePath: String?
     var progress: Double
     var bestAccuracy: Double
     var lastPracticed: Date
@@ -197,6 +198,7 @@ struct Piece: Identifiable, Codable, Hashable {
         collection: String,
         fileName: String? = nil,
         scorePath: String? = nil,
+        previewImagePath: String? = nil,
         progress: Double,
         bestAccuracy: Double,
         lastPracticed: Date = .now,
@@ -215,6 +217,7 @@ struct Piece: Identifiable, Codable, Hashable {
         self.collection = collection
         self.fileName = fileName
         self.scorePath = scorePath
+        self.previewImagePath = previewImagePath
         self.progress = progress
         self.bestAccuracy = bestAccuracy
         self.lastPracticed = lastPracticed
@@ -235,6 +238,7 @@ struct Piece: Identifiable, Codable, Hashable {
         case collection
         case fileName
         case scorePath
+        case previewImagePath
         case progress
         case bestAccuracy
         case lastPracticed
@@ -256,6 +260,10 @@ struct Piece: Identifiable, Codable, Hashable {
         collection = try container.decode(String.self, forKey: .collection)
         fileName = try container.decodeIfPresent(String.self, forKey: .fileName)
         scorePath = try container.decodeIfPresent(String.self, forKey: .scorePath)
+        previewImagePath = try container.decodeIfPresent(
+            String.self,
+            forKey: .previewImagePath
+        )
         progress = try container.decodeIfPresent(Double.self, forKey: .progress) ?? 0
         bestAccuracy = try container.decodeIfPresent(Double.self, forKey: .bestAccuracy) ?? 0
         lastPracticed = try container.decodeIfPresent(Date.self, forKey: .lastPracticed) ?? .now

@@ -73,7 +73,7 @@ struct LibraryPieceMenu: View {
             }
 
             if !store.folders.isEmpty {
-                Menu("Move to Folder") {
+                Menu("Add to Folder") {
                     if piece.folderID != nil {
                         Button("Remove from Folder") {
                             store.movePiece(piece.id, to: nil)

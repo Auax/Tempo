@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 @testable import Tempo
@@ -148,6 +149,7 @@ struct LibraryStoreTests {
             title: "Autumn Leaves",
             composer: "Joseph Kosma",
             collection: "MUSICXML",
+            previewImagePath: "/tmp/score-preview.png",
             progress: 0,
             bestAccuracy: 0,
             difficulty: PieceDifficulty.easy.rawValue,
@@ -166,6 +168,62 @@ struct LibraryStoreTests {
 
         #expect(decoded.artwork == artwork)
         #expect(decoded.artworkNotes == piece.artworkNotes)
+        #expect(decoded.previewImagePath == piece.previewImagePath)
+    }
+
+    @Test
+    func scorePreviewRendererWritesLoadableImage() async {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <score-partwise version="4.0">
+          <part-list>
+            <score-part id="P1"><part-name>Piano</part-name></score-part>
+          </part-list>
+          <part id="P1">
+            <measure number="1">
+              <attributes>
+                <divisions>1</divisions>
+                <time><beats>4</beats><beat-type>4</beat-type></time>
+                <clef><sign>G</sign><line>2</line></clef>
+              </attributes>
+              <note>
+                <pitch><step>C</step><octave>4</octave></pitch>
+                <duration>4</duration>
+                <type>whole</type>
+              </note>
+            </measure>
+          </part>
+        </score-partwise>
+        """
+        let identifier = UUID()
+        let previewURL = await ScorePreviewRenderer.renderAndSave(
+            xml: xml,
+            identifier: identifier
+        )
+        defer {
+            if let previewURL {
+                try? FileManager.default.removeItem(at: previewURL)
+            }
+        }
+
+        #expect(previewURL?.lastPathComponent.hasSuffix("-preview-v4.png") == true)
+        #expect(previewURL.flatMap(NSImage.init(contentsOf:)) != nil)
+        if let previewURL,
+           let data = try? Data(contentsOf: previewURL),
+           let bitmap = NSBitmapImageRep(data: data) {
+            let hasVisibleInk = stride(from: 0, to: bitmap.pixelsHigh, by: 4).contains {
+                y in
+                stride(from: 0, to: bitmap.pixelsWide, by: 4).contains { x in
+                    guard let color = bitmap.colorAt(x: x, y: y) else { return false }
+                    return color.redComponent < 0.8
+                        || color.greenComponent < 0.8
+                        || color.blueComponent < 0.8
+                }
+            }
+            #expect(hasVisibleInk)
+        } else {
+            Issue.record("The saved score preview could not be inspected.")
+        }
     }
 
     @Test
