@@ -74,10 +74,11 @@ struct TempoSettingsView: View {
                     supportedScoresDescription
                 }
             }
-            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: 1_240, alignment: .leading)
             .padding(TempoTheme.Spacing.xLarge)
-            .frame(maxWidth: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity)
         }
+        .background(Color.primary.opacity(0.025))
     }
 
     private var practiceControls: some View {

@@ -1,6 +1,4 @@
-import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct ScoreImportDetailsView: View {
     @Bindable var store: TempoStore
@@ -13,9 +11,6 @@ struct ScoreImportDetailsView: View {
     @State private var difficulty = PieceDifficulty.easy
     @State private var genre = PieceGenre.classical
     @State private var folderID: ScoreFolder.ID?
-    @State private var artwork = ScoreArtwork.default
-    @State private var customArtworkData: Data?
-    @State private var showingArtworkImporter = false
     @State private var isSaving = false
 
     init(store: TempoStore, pendingImport: PendingScoreImport) {
@@ -44,7 +39,6 @@ struct ScoreImportDetailsView: View {
             initialValue: PieceGenre(rawValue: piece.genre) ?? .classical
         )
         _folderID = State(initialValue: piece.folderID)
-        _artwork = State(initialValue: piece.artwork)
     }
 
     private var isEditing: Bool {
@@ -66,14 +60,6 @@ struct ScoreImportDetailsView: View {
             ?? ""
     }
 
-    private var previewScoreXML: String? {
-        pendingImport?.parsedScore.xml
-    }
-
-    private var previewScorePath: String? {
-        editingPiece?.scorePath
-    }
-
     private var suggestions: [String] {
         store.composerSuggestions(for: composer).filter {
             $0.localizedCaseInsensitiveCompare(composer) != .orderedSame
@@ -82,14 +68,6 @@ struct ScoreImportDetailsView: View {
 
     private var canImport: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    private var customArtworkImage: NSImage? {
-        customArtworkData.flatMap(NSImage.init(data:))
-    }
-
-    private var isUsingCustomArtwork: Bool {
-        customArtworkData != nil || artwork.customImagePath != nil
     }
 
     private var selectedFolderName: String {
@@ -101,97 +79,20 @@ struct ScoreImportDetailsView: View {
         return folder.name
     }
 
-    private var folderPicker: some View {
-        Menu {
-            Button {
-                folderID = nil
-            } label: {
-                if folderID == nil {
-                    Label("No Folder", systemImage: "checkmark")
-                } else {
-                    Text("No Folder")
-                }
-            }
-            ForEach(store.folders) { folder in
-                Button {
-                    folderID = folder.id
-                } label: {
-                    if folderID == folder.id {
-                        Label(folder.name, systemImage: "checkmark")
-                    } else {
-                        Text(folder.name)
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: TempoTheme.Spacing.small) {
-                Text(selectedFolderName)
-                    .foregroundStyle(.primary)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .font(.subheadline)
-            .padding(.horizontal, TempoTheme.Spacing.medium)
-            .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.controlHeight, alignment: .leading)
-            .background(
-                .regularMaterial,
-                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-                    .stroke(Color.tempoControlBorder, lineWidth: 1)
-            }
-        }
-        .menuStyle(.button)
-        .buttonStyle(.plain)
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: TempoTheme.Spacing.xLarge) {
             VStack(alignment: .leading, spacing: 5) {
                 Text(modalTitle)
                     .font(.title2.weight(.semibold))
-                Text("Review the details and create the artwork shown in your library.")
-                    .foregroundStyle(.secondary)
+                Text(
+                    isEditing
+                        ? "Update the details for this score."
+                        : "Review the details before adding this score to your library."
+                )
+                .foregroundStyle(.secondary)
             }
 
-            HStack(alignment: .top, spacing: TempoTheme.Spacing.xLarge) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: TempoTheme.Spacing.xLarge) {
-                        detailsSection
-                        artworkSection
-                        customizationSection
-                    }
-                    .padding(.trailing, TempoTheme.Spacing.small)
-                }
-                .frame(maxWidth: .infinity, maxHeight: 650)
-
-                VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
-                    HStack {
-                        Text("Preview")
-                            .font(.headline)
-                        Spacer()
-                        Text("Library artwork")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    ScoreArtworkView(
-                        title: title,
-                        composer: composer,
-                        artwork: artwork,
-                        difficulty: difficulty.rawValue,
-                        genre: genre.rawValue,
-                        scoreXML: previewScoreXML,
-                        scorePath: previewScorePath,
-                        overrideImage: customArtworkImage
-                    )
-                    .frame(width: 330)
-                }
-                .frame(width: 330)
-            }
+            detailsSection
 
             HStack(spacing: TempoTheme.Spacing.medium) {
                 Text(displayedFileName)
@@ -220,22 +121,12 @@ struct ScoreImportDetailsView: View {
             }
         }
         .padding(28)
-        .frame(width: 940, height: 780)
+        .frame(width: 480)
         .interactiveDismissDisabled()
-        .fileImporter(
-            isPresented: $showingArtworkImporter,
-            allowedContentTypes: [.image],
-            allowsMultipleSelection: false
-        ) { result in
-            guard case .success(let urls) = result, let url = urls.first else { return }
-            loadCustomArtwork(from: url)
-        }
     }
 
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: TempoTheme.Spacing.large) {
-            sectionTitle("Score details", subtitle: "Used throughout your library and practice view.")
-
             field("Name") {
                 TempoTextField(prompt: "Score name", text: $title)
             }
@@ -294,203 +185,53 @@ struct ScoreImportDetailsView: View {
                 folderPicker
             }
         }
-        .tempoCard()
     }
 
-    private var artworkSection: some View {
-        VStack(alignment: .leading, spacing: TempoTheme.Spacing.large) {
-            sectionTitle("Select artwork", subtitle: "Choose a preset or use your own image.")
-
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4),
-                spacing: 10
-            ) {
-                ForEach(ScoreArtworkPreset.allCases) { preset in
-                    Button {
-                        customArtworkData = nil
-                        artwork.customImagePath = nil
-                        artwork.preset = preset
-                        artwork.usesDarkText = preset.prefersDarkText
-                        artwork.overlayOpacity = preset.prefersDarkText ? 0.08 : 0.24
-                    } label: {
-                        presetThumbnail(preset)
-                        .aspectRatio(0.78, contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(
-                                    artwork.preset == preset && !isUsingCustomArtwork
-                                        ? Color.tempoBlue
-                                        : Color.clear,
-                                    lineWidth: 3
-                                )
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(preset.title)
-                    .help(preset.title)
-                }
-            }
-
+    private var folderPicker: some View {
+        Menu {
             Button {
-                showingArtworkImporter = true
+                folderID = nil
             } label: {
-                Label(
-                    isUsingCustomArtwork ? "Replace Custom Image" : "Upload Custom Image",
-                    systemImage: "photo.badge.plus"
-                )
-                .frame(maxWidth: .infinity)
+                if folderID == nil {
+                    Label("No Folder", systemImage: "checkmark")
+                } else {
+                    Text("No Folder")
+                }
             }
-            .tempoBorderedButton()
-        }
-        .tempoCard()
-    }
-
-    private var customizationSection: some View {
-        VStack(alignment: .leading, spacing: TempoTheme.Spacing.large) {
-            sectionTitle("Customize", subtitle: "Fine-tune typography and image framing.")
-
-            field("Text alignment") {
-                Picker("Text alignment", selection: $artwork.textAlignment) {
-                    ForEach(ScoreArtworkTextAlignment.allCases) { alignment in
-                        Label(alignment.title, systemImage: alignment.systemImage)
-                            .tag(alignment)
+            ForEach(store.folders) { folder in
+                Button {
+                    folderID = folder.id
+                } label: {
+                    if folderID == folder.id {
+                        Label(folder.name, systemImage: "checkmark")
+                    } else {
+                        Text(folder.name)
                     }
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
             }
-
-            HStack(spacing: TempoTheme.Spacing.large) {
-                labeledSlider(
-                    "Title size",
-                    value: $artwork.titleScale,
-                    range: 0.78...1.18,
-                    valueLabel: "\(Int(artwork.titleScale * 100))%"
-                )
-                labeledSlider(
-                    "Overlay",
-                    value: $artwork.overlayOpacity,
-                    range: 0...0.55,
-                    valueLabel: "\(Int(artwork.overlayOpacity * 100))%"
-                )
-            }
-
-            field("Text color") {
-                HStack(spacing: 8) {
-                    colorChoice("Light", dark: false, swatch: .white)
-                    colorChoice("Dark", dark: true, swatch: .black)
-                }
-            }
-
-            HStack(spacing: TempoTheme.Spacing.large) {
-                labeledSlider(
-                    "Horizontal position",
-                    value: $artwork.imageOffsetX,
-                    range: -1...1,
-                    valueLabel: positionLabel(artwork.imageOffsetX)
-                )
-                labeledSlider(
-                    "Vertical position",
-                    value: $artwork.imageOffsetY,
-                    range: -1...1,
-                    valueLabel: positionLabel(artwork.imageOffsetY)
-                )
-            }
-        }
-        .tempoCard()
-    }
-
-    private func sectionTitle(_ title: String, subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title)
-                .font(.headline)
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private func labeledSlider(
-        _ label: String,
-        value: Binding<Double>,
-        range: ClosedRange<Double>,
-        valueLabel: String
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack {
-                Text(label)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(valueLabel)
-                    .font(.caption.monospacedDigit())
+        } label: {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                Text(selectedFolderName)
+                    .foregroundStyle(.primary)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
-            Slider(value: value, in: range)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func colorChoice(_ label: String, dark: Bool, swatch: Color) -> some View {
-        Button {
-            artwork.usesDarkText = dark
-        } label: {
-            HStack(spacing: 7) {
-                Circle()
-                    .fill(swatch)
-                    .frame(width: 12, height: 12)
-                    .overlay(Circle().stroke(.primary.opacity(0.22)))
-                Text(label)
-                Spacer()
-                if artwork.usesDarkText == dark {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(Color.tempoBlue)
-                }
-            }
-            .padding(.horizontal, 10)
-            .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.controlHeight)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+            .font(.subheadline)
+            .padding(.horizontal, TempoTheme.Spacing.medium)
+            .frame(maxWidth: .infinity, minHeight: TempoTheme.Layout.controlHeight, alignment: .leading)
+            .background(
+                .regularMaterial,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+            )
             .overlay {
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(
-                        artwork.usesDarkText == dark
-                            ? Color.tempoBlue
-                            : Color.tempoControlBorder
-                    )
+                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                    .stroke(Color.tempoControlBorder, lineWidth: 1)
             }
         }
+        .menuStyle(.button)
         .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func presetThumbnail(_ preset: ScoreArtworkPreset) -> some View {
-        if let image = ScoreArtworkImageLoader.image(for: preset) {
-            Image(nsImage: image)
-                .resizable()
-                .scaledToFill()
-        } else {
-            Color.secondary.opacity(0.12)
-        }
-    }
-
-    private func positionLabel(_ value: Double) -> String {
-        if abs(value) < 0.08 {
-            return "Center"
-        }
-        return value < 0 ? "−\(Int(abs(value) * 100))" : "+\(Int(value * 100))"
-    }
-
-    private func loadCustomArtwork(from url: URL) {
-        let canAccess = url.startAccessingSecurityScopedResource()
-        defer {
-            if canAccess {
-                url.stopAccessingSecurityScopedResource()
-            }
-        }
-        guard let data = try? Data(contentsOf: url), NSImage(data: data) != nil else { return }
-        customArtworkData = data
-        artwork.customImagePath = nil
     }
 
     private func save() async {
@@ -501,9 +242,7 @@ struct ScoreImportDetailsView: View {
                 composer: composer,
                 difficulty: difficulty,
                 genre: genre,
-                folderID: folderID,
-                artwork: artwork,
-                customArtworkData: customArtworkData
+                folderID: folderID
             )
         } else {
             await store.finishImport(
@@ -511,9 +250,7 @@ struct ScoreImportDetailsView: View {
                 composer: composer,
                 difficulty: difficulty,
                 genre: genre,
-                folderID: folderID,
-                artwork: artwork,
-                customArtworkData: customArtworkData
+                folderID: folderID
             )
         }
     }

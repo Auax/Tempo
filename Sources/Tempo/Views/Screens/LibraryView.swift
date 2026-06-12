@@ -90,7 +90,9 @@ struct LibraryView: View {
             
             Spacer(minLength: 0)
 
-            LibraryFilterMenuButton(store: store)
+            if store.librarySection == .allScores {
+                LibraryFilterMenuButton(store: store)
+            }
         }
         .padding(.bottom, TempoTheme.Spacing.medium)
     }
@@ -184,7 +186,10 @@ struct LibraryView: View {
         ) {
             ForEach(pieces) { piece in
                 SheetMusicCard(piece: piece, store: store)
-                    .frame(width: TempoTheme.Layout.libraryScoreCardMin)
+                    .frame(
+                        width: TempoTheme.Layout.libraryScoreCardMin,
+                        alignment: .top
+                    )
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

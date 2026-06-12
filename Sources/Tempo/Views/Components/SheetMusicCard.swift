@@ -6,6 +6,7 @@ struct SheetMusicCard: View {
     @Bindable var store: TempoStore
     var showsActions = true
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var previewImage: NSImage?
     @State private var isHovered = false
 
@@ -27,10 +28,18 @@ struct SheetMusicCard: View {
                 scorePreview
 
                 VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
-                    Text(piece.title.isEmpty ? "Untitled Score" : piece.title)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
+                    ZStack(alignment: .topLeading) {
+                        Text(" \n ")
+                            .font(.title3.weight(.semibold))
+                            .opacity(0)
+                            .accessibilityHidden(true)
+
+                        Text(piece.title.isEmpty ? "Untitled Score" : piece.title)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
 
                     Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
                         .font(.body)
@@ -103,7 +112,7 @@ struct SheetMusicCard: View {
 
     private var hoverOverlay: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(colorScheme == .dark ? 0.4 : 0.2)
 
             ZStack {
                 Circle()

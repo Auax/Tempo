@@ -9,7 +9,7 @@ enum AppDestination: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     static var primaryCases: [AppDestination] {
-        [.home, .library, .progress]
+        [.home, .library, .settings]
     }
 
     var title: String {

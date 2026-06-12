@@ -584,13 +584,19 @@ private struct TopPieceRow: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 18, alignment: .trailing)
 
-                ScoreArtworkView(
-                    title: piece.title,
-                    composer: piece.composer,
-                    artwork: piece.artwork,
-                    scorePath: piece.scorePath
-                )
-                .frame(width: 38)
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.tempoScorePaper)
+                    .overlay {
+                        Image(systemName: "music.note")
+                            .font(.caption)
+                            .foregroundStyle(Color.black.opacity(0.2))
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    }
+                    .frame(width: 38)
+                    .aspectRatio(0.75, contentMode: .fit)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(piece.title)

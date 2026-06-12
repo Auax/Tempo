@@ -479,15 +479,6 @@ private struct LibraryControlsPreview: View {
                 LibraryFilterTags(store: PreviewFixtures.store())
                 LibraryFilterMenuButton(store: PreviewFixtures.store())
             }
-            ScoreArtworkView(
-                title: PreviewFixtures.piece.title,
-                composer: PreviewFixtures.piece.composer,
-                artwork: PreviewFixtures.piece.artwork,
-                difficulty: PreviewFixtures.piece.difficulty,
-                genre: PreviewFixtures.piece.genre,
-                scoreXML: PreviewFixtures.parsedScore.xml
-            )
-                .frame(width: 210)
         }
         .padding()
         .frame(width: 360)

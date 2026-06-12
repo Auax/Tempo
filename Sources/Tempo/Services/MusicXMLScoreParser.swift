@@ -156,8 +156,7 @@ enum MusicXMLScoreParser {
             },
             measureStartBeats: measureStartBeats,
             measureDurations: measureDurations,
-            title: firstText(in: document, xpath: "//work-title")
-                ?? firstText(in: document, xpath: "//movement-title"),
+            title: title(in: document),
             composer: composer(in: document),
             tempo: detectedTempo
         )
@@ -166,6 +165,26 @@ enum MusicXMLScoreParser {
     private static func firstText(in node: XMLNode, xpath: String) -> String? {
         (try? node.nodes(forXPath: xpath).first?.stringValue)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func title(in document: XMLDocument) -> String? {
+        let workTitle = firstText(in: document, xpath: "//work-title")
+        let movementTitle = firstText(in: document, xpath: "//movement-title")
+
+        switch (workTitle, movementTitle) {
+        case let (work?, movement?):
+            if movement.localizedCaseInsensitiveContains(work)
+                || work.localizedCaseInsensitiveContains(movement) {
+                return movement.count >= work.count ? movement : work
+            }
+            return "\(work) \(movement)"
+        case (_, let movement?):
+            return movement
+        case (let work?, nil):
+            return work
+        case (nil, nil):
+            return nil
+        }
     }
 
     private static func composer(in document: XMLDocument) -> String? {

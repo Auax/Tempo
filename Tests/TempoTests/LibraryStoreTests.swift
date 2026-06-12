@@ -134,17 +134,7 @@ struct LibraryStoreTests {
     }
 
     @Test
-    func artworkConfigurationRoundTripsWithPiece() throws {
-        let artwork = ScoreArtwork(
-            preset: .autumn,
-            customImagePath: "/tmp/custom-artwork.png",
-            textAlignment: .trailing,
-            usesDarkText: true,
-            titleScale: 1.12,
-            overlayOpacity: 0.08,
-            imageOffsetX: -0.25,
-            imageOffsetY: 0.4
-        )
+    func previewImagePathRoundTripsWithPiece() throws {
         let piece = Piece(
             title: "Autumn Leaves",
             composer: "Joseph Kosma",
@@ -153,12 +143,7 @@ struct LibraryStoreTests {
             progress: 0,
             bestAccuracy: 0,
             difficulty: PieceDifficulty.easy.rawValue,
-            sections: [],
-            artwork: artwork,
-            artworkNotes: [
-                ScoreArtworkNote(position: 0.2, pitch: 64, line: 0),
-                ScoreArtworkNote(position: 0.7, pitch: 57, line: 1)
-            ]
+            sections: []
         )
 
         let decoded = try JSONDecoder().decode(
@@ -166,8 +151,6 @@ struct LibraryStoreTests {
             from: JSONEncoder().encode(piece)
         )
 
-        #expect(decoded.artwork == artwork)
-        #expect(decoded.artworkNotes == piece.artworkNotes)
         #expect(decoded.previewImagePath == piece.previewImagePath)
     }
 
@@ -228,7 +211,7 @@ struct LibraryStoreTests {
     }
 
     @Test
-    func editingPieceUpdatesLibraryDetailsAndArtwork() {
+    func editingPieceUpdatesLibraryDetails() {
         let suiteName = "LibraryStoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -243,15 +226,10 @@ struct LibraryStoreTests {
             bestAccuracy: 0.9,
             difficulty: PieceDifficulty.easy.rawValue,
             genre: PieceGenre.classical.rawValue,
-            sections: [],
-            artwork: .default
+            sections: []
         )
         store.pieces = [piece]
         store.folders = [folder]
-
-        var artwork = ScoreArtwork.default
-        artwork.preset = .autumn
-        artwork.textAlignment = .trailing
 
         store.finishEditing(
             pieceID: piece.id,
@@ -259,9 +237,7 @@ struct LibraryStoreTests {
             composer: " New Composer ",
             difficulty: .advanced,
             genre: .film,
-            folderID: folder.id,
-            artwork: artwork,
-            customArtworkData: nil
+            folderID: folder.id
         )
 
         let edited = store.pieces[0]
@@ -270,7 +246,6 @@ struct LibraryStoreTests {
         #expect(edited.difficulty == PieceDifficulty.advanced.rawValue)
         #expect(edited.genre == PieceGenre.film.rawValue)
         #expect(edited.folderID == folder.id)
-        #expect(edited.artwork == artwork)
         #expect(edited.progress == piece.progress)
         #expect(edited.bestAccuracy == piece.bestAccuracy)
     }

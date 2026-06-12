@@ -34,16 +34,6 @@ struct SidebarView: View {
 
             VStack(spacing: TempoTheme.Layout.sidebarItemSpacing) {
                 connectionStatus
-
-                SidebarItem(
-                    destination: .settings,
-                    selected: store.destination == .settings,
-                    compact: compact
-                ) {
-                    withAnimation(TempoTheme.Motion.quick) {
-                        store.openDestination(.settings)
-                    }
-                }
             }
             .padding(.horizontal, TempoTheme.Layout.sidebarHorizontalPadding)
             .padding(.bottom, 14)

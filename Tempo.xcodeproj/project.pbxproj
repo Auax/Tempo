@@ -18,7 +18,9 @@
 		1A75D1D0B67D00BA2C6222B4 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625A82B113EADC22BC690DD2 /* ProgressView.swift */; };
 		1D0830D858A05950C18A85F6 /* SessionReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A23D8AC54D4606E534884 /* SessionReviewView.swift */; };
 		1E0294461D569FCBDEF54F7B /* TransportControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E657BBD64E5D4433C304C1 /* TransportControls.swift */; };
-		281A1DBC113B312ACAF45EC1 /* ScoreArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 518164B1228AEB85062D560D /* ScoreArtworkView.swift */; };
+		7A8B9C0D1E2F304152637481 /* LibraryPieceMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8B9C0D1E2F304152637480 /* LibraryPieceMenu.swift */; };
+		9F0A1B2C3D4E5F60718293A5 /* ScorePreviewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0A1B2C3D4E5F60718293A4 /* ScorePreviewRenderer.swift */; };
+		9F0A1B2C3D4E5F60718293B5 /* SheetMusicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0A1B2C3D4E5F60718293B4 /* SheetMusicCard.swift */; };
 		2B51FF5A188B7EC7B7A9822D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7876FBC1A486BCF089AE92 /* HomeView.swift */; };
 		2EF0339A361153FC06F0D9B2 /* LibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C858F2445E580CDFA63CB9 /* LibraryStoreTests.swift */; };
 		33F3EC2FBFE2744CD204D51C /* NavigationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD930357354B5A8F8BB202A /* NavigationModels.swift */; };
@@ -30,8 +32,6 @@
 		52AE6A30EFB0F09E2B2EC0B2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A01F8DE22859252DD219FFE /* SettingsView.swift */; };
 		55AF5AC275D36C77016085C4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047223DA27E410389A67F786 /* ContentView.swift */; };
 		58EA9AE16C347F5B0B0FF096 /* TempoLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */; };
-		5D5D8B4FA2CD2BD1BFA43A3C /* autumn.png in Resources */ = {isa = PBXBuildFile; fileRef = 68215D7942154851D475EB74 /* autumn.png */; };
-		6509042207DE7F04E4E5DC41 /* LibraryScoreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */; };
 		6AF7F78714B209212E1C7687 /* MIDIConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */; };
 		6F2DD1F863BC9B24658F7BA8 /* ScoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4728EE9AFF382BE5AF16312 /* ScoreModels.swift */; };
 		77C33B52997BFB89550152CD /* PracticeWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21999C69A782FA553E6EC6A1 /* PracticeWorkspaceView.swift */; };
@@ -42,12 +42,9 @@
 		A7CF326D010B508D106A3C05 /* ScoreTimelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581CB7A31F9C4E07B7860968 /* ScoreTimelineTests.swift */; };
 		ACF8F84A85941FD4084839F2 /* MIDIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82664E7A32CD84FD686B8AD8 /* MIDIService.swift */; };
 		AE5314C5233C71D9AC698677 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 38ECABEBA9DE5FD43B3F6893 /* ZIPFoundation */; };
-		AFBA13D0FDDEDD5817BD3543 /* nocturne.png in Resources */ = {isa = PBXBuildFile; fileRef = 6FB6F34594E2951A39D8170D /* nocturne.png */; };
 		B274DD2CF92A747E96666D13 /* FeedbackPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A73EFFC7E25209E4206114C /* FeedbackPanel.swift */; };
-		BE1108DD7EEE63CE2863B10B /* sonata.png in Resources */ = {isa = PBXBuildFile; fileRef = A187A842C8B996C0D99FFA51 /* sonata.png */; };
 		C1C6BA513FE6A1AD62A9AE23 /* TempoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44EC78157D9994748BE04940 /* TempoApp.swift */; };
 		C4246E8A964D4E190EC99E32 /* TempoCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F8DBEB1A80F03BB4F9053E /* TempoCommands.swift */; };
-		CC393E36AAED4E8687CD6108 /* moonlit.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CA57BA433EE1F0B76C3992C /* moonlit.png */; };
 		D3FA82EDC883C8FA567AEE44 /* VerovioScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BF6DB6C8A7EEB5B300EDC3 /* VerovioScoreView.swift */; };
 		DBC61644A4011A63A309F07C /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6C3DA77AF023D6DD0B5D6 /* SidebarView.swift */; };
 		DEB8CF6C0CE1FF6D41E73F3E /* MusicXMLScoreParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D497E89F745D8944A395AC /* MusicXMLScoreParserTests.swift */; };
@@ -79,17 +76,16 @@
 		44EC78157D9994748BE04940 /* TempoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoApp.swift; sourceTree = "<group>"; };
 		46DFC341139E3E5275D52ED8 /* PracticeTitleBarAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeTitleBarAccessory.swift; sourceTree = "<group>"; };
 		46EF5F0C7F27F6385FF395D2 /* SessionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMetrics.swift; sourceTree = "<group>"; };
-		4CA57BA433EE1F0B76C3992C /* moonlit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = moonlit.png; sourceTree = "<group>"; };
+		7A8B9C0D1E2F304152637480 /* LibraryPieceMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPieceMenu.swift; sourceTree = "<group>"; };
+		9F0A1B2C3D4E5F60718293A4 /* ScorePreviewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorePreviewRenderer.swift; sourceTree = "<group>"; };
+		9F0A1B2C3D4E5F60718293B4 /* SheetMusicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetMusicCard.swift; sourceTree = "<group>"; };
 		4F924CEB16CA00F41428B784 /* TempoStorePlaybackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoStorePlaybackTests.swift; sourceTree = "<group>"; };
 		50E657BBD64E5D4433C304C1 /* TransportControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportControls.swift; sourceTree = "<group>"; };
-		518164B1228AEB85062D560D /* ScoreArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreArtworkView.swift; sourceTree = "<group>"; };
 		5290255801B8AE30A0816767 /* TempoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoStore.swift; sourceTree = "<group>"; };
 		581CB7A31F9C4E07B7860968 /* ScoreTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreTimelineTests.swift; sourceTree = "<group>"; };
 		58C858F2445E580CDFA63CB9 /* LibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStoreTests.swift; sourceTree = "<group>"; };
 		621B168D177CAEF62C009206 /* SessionMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMetricsTests.swift; sourceTree = "<group>"; };
 		625A82B113EADC22BC690DD2 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
-		68215D7942154851D475EB74 /* autumn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = autumn.png; sourceTree = "<group>"; };
-		6FB6F34594E2951A39D8170D /* nocturne.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nocturne.png; sourceTree = "<group>"; };
 		78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIConnectionView.swift; sourceTree = "<group>"; };
 		7D2477231F540EB1BD7694F0 /* MIDIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIServiceTests.swift; sourceTree = "<group>"; };
 		82664E7A32CD84FD686B8AD8 /* MIDIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIService.swift; sourceTree = "<group>"; };
@@ -99,7 +95,6 @@
 		97F8DBEB1A80F03BB4F9053E /* TempoCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoCommands.swift; sourceTree = "<group>"; };
 		9BEC4100791175DCD5B1BDFA /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		9D2CFFDC6309AD840D790033 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
-		A187A842C8B996C0D99FFA51 /* sonata.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sonata.png; sourceTree = "<group>"; };
 		A292DF0F8C64646FC53B3B1F /* ScoreImportDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreImportDetailsView.swift; sourceTree = "<group>"; };
 		AAD930357354B5A8F8BB202A /* NavigationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationModels.swift; sourceTree = "<group>"; };
 		AE6263597B3354C508BBC7D4 /* Tempo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tempo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -112,7 +107,6 @@
 		EFB05817162115D7E031A8C7 /* PairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingView.swift; sourceTree = "<group>"; };
 		F32CB3B6D44BF10CDA007AE4 /* PracticeToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeToolbar.swift; sourceTree = "<group>"; };
 		F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempoLogo.swift; sourceTree = "<group>"; };
-		F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScoreCard.swift; sourceTree = "<group>"; };
 		FFBD34F107CE3EAC1FD073D9 /* PianoPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoPlaybackService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -135,6 +129,7 @@
 				82664E7A32CD84FD686B8AD8 /* MIDIService.swift */,
 				D01ECFC8202A52963094E389 /* MusicXMLScoreParser.swift */,
 				FFBD34F107CE3EAC1FD073D9 /* PianoPlaybackService.swift */,
+				9F0A1B2C3D4E5F60718293A4 /* ScorePreviewRenderer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -187,13 +182,13 @@
 			children = (
 				8A73EFFC7E25209E4206114C /* FeedbackPanel.swift */,
 				D39D4C08844BF0E12D04FF12 /* LibraryControls.swift */,
-				F6DF9A038DE78890A06BB86B /* LibraryScoreCard.swift */,
+				7A8B9C0D1E2F304152637480 /* LibraryPieceMenu.swift */,
 				78B88C03A7ED80BAC6D88064 /* MIDIConnectionView.swift */,
 				EFB05817162115D7E031A8C7 /* PairingView.swift */,
 				0CB7F5B99ABED7523BCD7083 /* PianoKeyboardView.swift */,
 				46DFC341139E3E5275D52ED8 /* PracticeTitleBarAccessory.swift */,
 				F32CB3B6D44BF10CDA007AE4 /* PracticeToolbar.swift */,
-				518164B1228AEB85062D560D /* ScoreArtworkView.swift */,
+				9F0A1B2C3D4E5F60718293B4 /* SheetMusicCard.swift */,
 				1EE6C3DA77AF023D6DD0B5D6 /* SidebarView.swift */,
 				F3662E1F14BF4CEE6AA3CF93 /* TempoLogo.swift */,
 				50E657BBD64E5D4433C304C1 /* TransportControls.swift */,
@@ -221,7 +216,6 @@
 			children = (
 				EA40683C3674BBBD3F4320E1 /* App */,
 				79FDDFC99F7270F9A5D756BD /* Models */,
-				DB851827D78B4578AA8AD018 /* Resources */,
 				18505C54FFBE36FE8178F023 /* Services */,
 				D0800215A902EDF8A758B711 /* Stores */,
 				C5B5E2B26F0089C48BE76CCD /* Support */,
@@ -267,31 +261,12 @@
 			path = Stores;
 			sourceTree = "<group>";
 		};
-		D102723607DD3F4A329CEEF7 /* ArtworkPresets */ = {
-			isa = PBXGroup;
-			children = (
-				68215D7942154851D475EB74 /* autumn.png */,
-				4CA57BA433EE1F0B76C3992C /* moonlit.png */,
-				6FB6F34594E2951A39D8170D /* nocturne.png */,
-				A187A842C8B996C0D99FFA51 /* sonata.png */,
-			);
-			path = ArtworkPresets;
-			sourceTree = "<group>";
-		};
 		D8FDA2DD58911B41385E097A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
 				A7AEA418D4B81761780708C3 /* Tempo */,
 			);
 			path = Sources;
-			sourceTree = "<group>";
-		};
-		DB851827D78B4578AA8AD018 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				D102723607DD3F4A329CEEF7 /* ArtworkPresets */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		EA40683C3674BBBD3F4320E1 /* App */ = {
@@ -387,10 +362,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D5D8B4FA2CD2BD1BFA43A3C /* autumn.png in Resources */,
-				CC393E36AAED4E8687CD6108 /* moonlit.png in Resources */,
-				AFBA13D0FDDEDD5817BD3543 /* nocturne.png in Resources */,
-				BE1108DD7EEE63CE2863B10B /* sonata.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,7 +391,7 @@
 				13FDDC855D41A1CAF68DE2E3 /* Formatters.swift in Sources */,
 				2B51FF5A188B7EC7B7A9822D /* HomeView.swift in Sources */,
 				8D5E022B49F467D6FE2F3FC6 /* LibraryControls.swift in Sources */,
-				6509042207DE7F04E4E5DC41 /* LibraryScoreCard.swift in Sources */,
+				7A8B9C0D1E2F304152637481 /* LibraryPieceMenu.swift in Sources */,
 				0CCA8211E465CECD30DB7EEC /* LibraryView.swift in Sources */,
 				6AF7F78714B209212E1C7687 /* MIDIConnectionView.swift in Sources */,
 				ACF8F84A85941FD4084839F2 /* MIDIService.swift in Sources */,
@@ -435,12 +406,13 @@
 				77C33B52997BFB89550152CD /* PracticeWorkspaceView.swift in Sources */,
 				0663699B7185E9E2A3DFAE64 /* PreviewFixtures.swift in Sources */,
 				1A75D1D0B67D00BA2C6222B4 /* ProgressView.swift in Sources */,
-				281A1DBC113B312ACAF45EC1 /* ScoreArtworkView.swift in Sources */,
 				3FC2D87E91684B2EAD4B24B6 /* ScoreImportDetailsView.swift in Sources */,
+				9F0A1B2C3D4E5F60718293A5 /* ScorePreviewRenderer.swift in Sources */,
 				6F2DD1F863BC9B24658F7BA8 /* ScoreModels.swift in Sources */,
 				3CC16D267A0F84AB34868E6E /* SessionMetrics.swift in Sources */,
 				1D0830D858A05950C18A85F6 /* SessionReviewView.swift in Sources */,
 				52AE6A30EFB0F09E2B2EC0B2 /* SettingsView.swift in Sources */,
+				9F0A1B2C3D4E5F60718293B5 /* SheetMusicCard.swift in Sources */,
 				DBC61644A4011A63A309F07C /* SidebarView.swift in Sources */,
 				C1C6BA513FE6A1AD62A9AE23 /* TempoApp.swift in Sources */,
 				C4246E8A964D4E190EC99E32 /* TempoCommands.swift in Sources */,

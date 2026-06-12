@@ -266,37 +266,17 @@ final class TempoStore {
         composer: String,
         difficulty: PieceDifficulty,
         genre: PieceGenre,
-        folderID: ScoreFolder.ID?,
-        artwork: ScoreArtwork,
-        customArtworkData: Data?
+        folderID: ScoreFolder.ID?
     ) {
         guard let index = pieces.firstIndex(where: { $0.id == pieceID }) else { return }
-
-        let previousArtworkPath = pieces[index].artwork.customImagePath
-        var storedArtwork = artwork
-        if let customArtworkData {
-            if let savedArtworkURL = saveArtworkImage(customArtworkData) {
-                storedArtwork.customImagePath = savedArtworkURL.path
-            } else {
-                storedArtwork.customImagePath = previousArtworkPath
-            }
-        }
 
         pieces[index].title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         pieces[index].composer = composer.trimmingCharacters(in: .whitespacesAndNewlines)
         pieces[index].difficulty = difficulty.rawValue
         pieces[index].genre = genre.rawValue
         pieces[index].folderID = folderID
-        pieces[index].artwork = storedArtwork
         editingPiece = nil
         persistPieces()
-
-        if let previousArtworkPath,
-           previousArtworkPath != storedArtwork.customImagePath {
-            try? FileManager.default.removeItem(
-                at: URL(fileURLWithPath: previousArtworkPath)
-            )
-        }
     }
 
     func deletePiece(_ pieceID: Piece.ID) {
@@ -324,11 +304,6 @@ final class TempoStore {
         if let scorePath = piece.scorePath {
             try? FileManager.default.removeItem(
                 at: URL(fileURLWithPath: scorePath)
-            )
-        }
-        if let artworkPath = piece.artwork.customImagePath {
-            try? FileManager.default.removeItem(
-                at: URL(fileURLWithPath: artworkPath)
             )
         }
         if let previewImagePath = piece.previewImagePath {
@@ -366,17 +341,11 @@ final class TempoStore {
         composer: String,
         difficulty: PieceDifficulty,
         genre: PieceGenre,
-        folderID: ScoreFolder.ID?,
-        artwork: ScoreArtwork,
-        customArtworkData: Data?
+        folderID: ScoreFolder.ID?
     ) async {
         guard let pendingImport else { return }
         let parsed = pendingImport.parsedScore
         let pieceID = UUID()
-        var storedArtwork = artwork
-        if let customArtworkData {
-            storedArtwork.customImagePath = saveArtworkImage(customArtworkData)?.path
-        }
         let previewImagePath = await ScorePreviewRenderer.renderAndSave(
             xml: parsed.xml,
             identifier: pieceID
@@ -401,9 +370,7 @@ final class TempoStore {
                     endMeasure: max(parsed.measureCount, 1),
                     mastery: 0
                 )
-            ],
-            artwork: storedArtwork,
-            artworkNotes: []
+            ]
         )
         pieces.insert(piece, at: 0)
         self.pendingImport = nil
@@ -945,36 +912,6 @@ final class TempoStore {
                 "\(UUID().uuidString)-\(sourceURL.lastPathComponent)"
             )
             try fileManager.copyItem(at: sourceURL, to: destination)
-            return destination
-        } catch {
-            return nil
-        }
-    }
-
-    private func saveArtworkImage(_ data: Data) -> URL? {
-        let fileManager = FileManager.default
-        guard
-            let applicationSupport = fileManager.urls(
-                for: .applicationSupportDirectory,
-                in: .userDomainMask
-            ).first
-        else {
-            return nil
-        }
-
-        let artworkDirectory = applicationSupport
-            .appendingPathComponent("Tempo", isDirectory: true)
-            .appendingPathComponent("Artwork", isDirectory: true)
-
-        do {
-            try fileManager.createDirectory(
-                at: artworkDirectory,
-                withIntermediateDirectories: true
-            )
-            let destination = artworkDirectory.appendingPathComponent(
-                "\(UUID().uuidString).image"
-            )
-            try data.write(to: destination, options: .atomic)
             return destination
         } catch {
             return nil

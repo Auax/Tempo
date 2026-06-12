@@ -55,6 +55,62 @@ struct MusicXMLScoreParserTests {
     }
 
     @Test
+    func prefersFullMovementTitleOverShortWorkTitle() throws {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <score-partwise version="4.0">
+          <work><work-title>Nocturne</work-title></work>
+          <movement-title>Nocturne No. 9 in B major, Op. 32, No. 1</movement-title>
+          <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+          <part id="P1">
+            <measure number="1">
+              <attributes>
+                <divisions>1</divisions>
+                <time><beats>4</beats><beat-type>4</beat-type></time>
+              </attributes>
+              <note>
+                <pitch><step>C</step><octave>4</octave></pitch>
+                <duration>4</duration>
+              </note>
+            </measure>
+          </part>
+        </score-partwise>
+        """
+
+        let score = try MusicXMLScoreParser.parse(data: Data(xml.utf8))
+
+        #expect(score.title == "Nocturne No. 9 in B major, Op. 32, No. 1")
+    }
+
+    @Test
+    func combinesWorkAndMovementTitlesWhenNeeded() throws {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <score-partwise version="4.0">
+          <work><work-title>Symphony No. 5</work-title></work>
+          <movement-title>Allegro con brio</movement-title>
+          <part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+          <part id="P1">
+            <measure number="1">
+              <attributes>
+                <divisions>1</divisions>
+                <time><beats>4</beats><beat-type>4</beat-type></time>
+              </attributes>
+              <note>
+                <pitch><step>C</step><octave>4</octave></pitch>
+                <duration>4</duration>
+              </note>
+            </measure>
+          </part>
+        </score-partwise>
+        """
+
+        let score = try MusicXMLScoreParser.parse(data: Data(xml.utf8))
+
+        #expect(score.title == "Symphony No. 5 Allegro con brio")
+    }
+
+    @Test
     func preservesShortNoteDurations() throws {
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
