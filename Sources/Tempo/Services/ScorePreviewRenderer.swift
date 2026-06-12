@@ -5,17 +5,9 @@ import WebKit
 
 enum ScorePreviewRenderer {
     private static let renderLock = NSLock()
-    private static let visibleStaffLineCount = 3
-    private static let previewScale = 52
-    private static let basePageHeightForTwoLines = 560
-
-    private static var previewPageHeight: Int {
-        basePageHeightForTwoLines
-            * visibleStaffLineCount
-            / 2
-            * previewScale
-            / 40
-    }
+    private static let previewScale = 42
+    private static let previewPageWidth = 1_340
+    private static let previewPageHeight = 1_787
 
     static func renderAndSave(
         xml: String,
@@ -63,16 +55,16 @@ enum ScorePreviewRenderer {
 
         let toolkit = VerovioToolkit(resourcePath)
         let options: [String: Any] = [
-            "adjustPageHeight": true,
+            "adjustPageHeight": false,
             "breaks": "auto",
             "footer": "none",
             "header": "none",
             "pageHeight": previewPageHeight,
-            "pageMarginBottom": 0,
-            "pageMarginLeft": 0,
-            "pageMarginRight": 0,
-            "pageMarginTop": 8,
-            "pageWidth": 1_340,
+            "pageMarginBottom": 48,
+            "pageMarginLeft": 52,
+            "pageMarginRight": 52,
+            "pageMarginTop": 48,
+            "pageWidth": previewPageWidth,
             "scale": previewScale,
             "svgHtml5": true,
             "svgViewBox": true
@@ -144,7 +136,7 @@ enum ScorePreviewRenderer {
 
     nonisolated private static func previewURL(identifier: UUID) -> URL? {
         previewDirectory()?.appendingPathComponent(
-            "\(identifier.uuidString)-preview-v4.png"
+            "\(identifier.uuidString)-preview-v5.png"
         )
     }
 }
@@ -152,8 +144,7 @@ enum ScorePreviewRenderer {
 @MainActor
 private enum WebScorePreviewRenderer {
     static func image(svg: String) async -> NSImage? {
-        // Thumbnail size is 720x300
-        let size = CGSize(width: 720, height: 300)
+        let size = CGSize(width: 720, height: 960)
         let webView = WKWebView(frame: CGRect(origin: .zero, size: size))
         let delegate = PreviewNavigationDelegate()
         webView.navigationDelegate = delegate
@@ -179,7 +170,7 @@ private enum WebScorePreviewRenderer {
               svg {
                 display: block;
                 width: 100%;
-                height: auto;
+                height: 100%;
                 color: #151515;
               }
               svg path, svg ellipse, svg polygon, svg polyline, svg rect {

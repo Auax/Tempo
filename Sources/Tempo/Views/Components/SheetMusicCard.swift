@@ -23,85 +23,46 @@ struct SheetMusicCard: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Button {
-                store.selectPiece(piece, startPractice: true)
-            } label: {
-                VStack(alignment: .leading, spacing: 0) {
-                    scorePreview
+            VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
+                scorePreview
 
-                    VStack(alignment: .leading, spacing: TempoTheme.Spacing.medium) {
-                        VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
-                            Text(piece.title.isEmpty ? "Untitled Score" : piece.title)
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .lineLimit(2)
+                VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                    Text(piece.title.isEmpty ? "Untitled Score" : piece.title)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
 
-                            Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
+                    Text(piece.composer.isEmpty ? "Unknown composer" : piece.composer)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
 
-                        VStack(alignment: .leading, spacing: TempoTheme.Spacing.small) {
-                            GeometryReader { geometry in
-                                ZStack(alignment: .leading) {
-                                    Capsule()
-                                        .fill(Color.primary.opacity(0.08))
-                                    Capsule()
-                                        .fill(Color.tempoBlue)
-                                        .frame(
-                                            width: max(
-                                                geometry.size.width * piece.progress,
-                                                6
-                                            )
-                                        )
-                                }
-                            }
-                            .frame(height: 5)
-
-                            HStack(spacing: TempoTheme.Spacing.xSmall) {
-                                Text(
-                                    piece.progress,
-                                    format: .percent.precision(.fractionLength(0))
-                                )
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.tempoBlue)
-
-                                Text("•")
-                                    .foregroundStyle(.tertiary)
-
-                                Text(practicedText)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            .font(.caption)
-                        }
-                    }
-                    .padding(TempoTheme.Spacing.large)
+                    Text(practicedText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .opacity(0.82)
+                        .lineLimit(1)
+                        .padding(.top, TempoTheme.Spacing.xSmall)
                 }
-                .background(Color.tempoControlSurface)
-                .clipShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
-                .overlay {
-                    RoundedRectangle(cornerRadius: TempoTheme.Radius.medium)
-                        .stroke(Color.tempoControlBorder, lineWidth: 1)
-                }
-                // .shadow(
-                //     color: .black.opacity(isHovered ? 0.15 : 0.09),
-                //     radius: isHovered ? 14 : 8,
-                //     y: isHovered ? 6 : 3
-                // )
-                .contentShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
             }
-            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                store.selectPiece(piece, startPractice: true)
+            }
 
             if showsActions {
                 cardActions
                     .padding(TempoTheme.Spacing.small)
             }
         }
-        .scaleEffect(isHovered ? 1.012 : 1)
+        .contentShape(Rectangle())
+        // .scaleEffect(isHovered ? 1.008 : 1)
         .animation(TempoTheme.Motion.quick, value: isHovered)
-        .onHover { isHovered = $0 }
+        .onHover { hovering in
+            withAnimation(TempoTheme.Motion.quick) {
+                isHovered = hovering
+            }
+        }
         .task(id: previewKey) {
             previewImage = await store.scorePreviewImage(for: piece.id)
         }
@@ -115,21 +76,63 @@ struct SheetMusicCard: View {
                 Image(nsImage: previewImage)
                     .resizable()
                     .scaledToFit()
-                    .padding(.horizontal, TempoTheme.Spacing.small)
-                    .padding(.bottom, TempoTheme.Spacing.xSmall)
-                    .padding(.top, TempoTheme.Spacing.small)
+                    .padding(.horizontal, TempoTheme.Spacing.large)
+                    .padding(.vertical, TempoTheme.Spacing.medium)
             } else {
                 Image(systemName: "music.note")
                     .font(.system(size: 30, weight: .light))
                     .foregroundStyle(Color.black.opacity(0.16))
             }
+
+            hoverOverlay
+                .opacity(isHovered ? 1 : 0)
         }
-        .aspectRatio(1.8, contentMode: .fit)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color.black.opacity(0.07))
-                .frame(height: 1)
+        .animation(TempoTheme.Motion.quick, value: isHovered)
+        .aspectRatio(0.75, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.medium))
+        .overlay {
+            RoundedRectangle(cornerRadius: TempoTheme.Radius.medium)
+                .stroke(Color.primary.opacity(0.14), lineWidth: 1)
         }
+        .shadow(
+            color: .black.opacity(isHovered ? 0.16 : 0.09),
+            radius: isHovered ? 12 : 7,
+            y: isHovered ? 5 : 3
+        )
+    }
+
+    private var hoverOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+
+            ZStack {
+                Circle()
+                    .stroke(Color.white, lineWidth: 7)
+
+                Circle()
+                    .trim(from: 0, to: max(clampedProgress, 0.01))
+                    .stroke(
+                        Color.tempoBlue,
+                        style: StrokeStyle(lineWidth: 7, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+
+                Text(
+                    clampedProgress,
+                    format: .percent.precision(.fractionLength(0))
+                )
+                .font(.headline.weight(.bold))
+                .foregroundStyle(Color.white)
+                .monospacedDigit()
+            }
+            .frame(width: 76, height: 76)
+            .shadow(color: .white.opacity(0.18), radius: 10, y: 0)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var clampedProgress: Double {
+        min(max(piece.progress, 0), 1)
     }
 
     private var cardActions: some View {
@@ -139,7 +142,7 @@ struct SheetMusicCard: View {
             } label: {
                 Image(systemName: piece.isFavorite ? "star.fill" : "star")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.tempoBlue)
+                    .foregroundStyle(piece.isFavorite ? Color.tempoBlue : Color.white)
                     .frame(width: 28, height: 28)
             }
             .buttonStyle(.plain)
@@ -151,7 +154,6 @@ struct SheetMusicCard: View {
 
             LibraryPieceMenu(piece: piece, store: store)
                 .frame(width: 28, height: 28)
-                .background(.regularMaterial, in: Circle())
                 .opacity(isHovered ? 1 : 0)
                 .allowsHitTesting(isHovered)
         }
@@ -165,6 +167,6 @@ struct SheetMusicCard: View {
         store: PreviewFixtures.store()
     )
     .padding()
-    .frame(width: 290)
+    .frame(width: 240)
 }
 #endif

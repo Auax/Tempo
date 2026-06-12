@@ -36,7 +36,7 @@ for bundle_pattern in \
 do
   for bundle in $bundle_pattern; do
     if [[ -d "$bundle" ]]; then
-      cp -R "$bundle" "$APP_RESOURCES/"
+      cp -R "$bundle" "$APP_BUNDLE/"
     fi
   done
 done

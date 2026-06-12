@@ -206,11 +206,12 @@ struct LibraryStoreTests {
             }
         }
 
-        #expect(previewURL?.lastPathComponent.hasSuffix("-preview-v4.png") == true)
+        #expect(previewURL?.lastPathComponent.hasSuffix("-preview-v5.png") == true)
         #expect(previewURL.flatMap(NSImage.init(contentsOf:)) != nil)
         if let previewURL,
            let data = try? Data(contentsOf: previewURL),
            let bitmap = NSBitmapImageRep(data: data) {
+            #expect(bitmap.pixelsHigh > bitmap.pixelsWide)
             let hasVisibleInk = stride(from: 0, to: bitmap.pixelsHigh, by: 4).contains {
                 y in
                 stride(from: 0, to: bitmap.pixelsWide, by: 4).contains { x in

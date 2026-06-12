@@ -157,7 +157,104 @@ struct LibrarySortPicker: View {
     }
 }
 
-struct LibraryFilterControls: View {
+struct LibraryFilterTags: View {
+    @Bindable var store: TempoStore
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                ForEach(LibraryQuickFilter.allCases) { filter in
+                    filterChip(
+                        filter.rawValue,
+                        symbol: filter.symbol,
+                        isSelected: store.libraryQuickFilter == filter
+                    ) {
+                        withAnimation(TempoTheme.Motion.quick) {
+                            store.toggleLibraryQuickFilter(filter)
+                        }
+                    }
+                }
+
+                ForEach(activeDifficulties) { difficulty in
+                    filterChip(
+                        difficulty.rawValue,
+                        isSelected: true,
+                        isRemovable: true
+                    ) {
+                        withAnimation(TempoTheme.Motion.quick) {
+                            _ = store.selectedDifficulties.remove(difficulty.rawValue)
+                        }
+                    }
+                }
+
+                ForEach(activeGenres) { genre in
+                    filterChip(
+                        genre.rawValue,
+                        isSelected: true,
+                        isRemovable: true
+                    ) {
+                        withAnimation(TempoTheme.Motion.quick) {
+                            _ = store.selectedGenres.remove(genre.rawValue)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var activeDifficulties: [PieceDifficulty] {
+        Array(PieceDifficulty.allCases).filter {
+            store.selectedDifficulties.contains($0.rawValue)
+        }
+    }
+
+    private var activeGenres: [PieceGenre] {
+        Array(PieceGenre.allCases).filter {
+            store.selectedGenres.contains($0.rawValue)
+        }
+    }
+
+    private func filterChip(
+        _ title: String,
+        symbol: String? = nil,
+        isSelected: Bool,
+        isRemovable: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                if let symbol {
+                    Image(systemName: symbol)
+                }
+                Text(title)
+                if isRemovable {
+                    Image(systemName: "xmark")
+                        .font(.caption2.weight(.bold))
+                }
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(isSelected ? Color.tempoBlue : .primary)
+            .padding(.horizontal, TempoTheme.Spacing.medium)
+            .frame(height: TempoTheme.Layout.controlHeight)
+            .background(
+                isSelected ? Color.tempoBlue.opacity(0.12) : Color.clear,
+                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
+                    .stroke(
+                        isSelected ? Color.tempoBlue.opacity(0.65) : Color.tempoControlBorder,
+                        lineWidth: 1
+                    )
+            }
+            .contentShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.control))
+        }
+        .buttonStyle(.plain)
+        .help(isRemovable ? "Remove \(title) filter" : "Show \(title.lowercased()) scores")
+    }
+}
+
+struct LibraryFilterMenuButton: View {
     @Bindable var store: TempoStore
     @State private var isFilterPopoverPresented = false
     @State private var draftQuickFilter: LibraryQuickFilter = .all
@@ -165,71 +262,28 @@ struct LibraryFilterControls: View {
     @State private var draftGenres: Set<String> = []
 
     var body: some View {
-        HStack(spacing: TempoTheme.Spacing.medium) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: TempoTheme.Spacing.small) {
-                    ForEach(LibraryQuickFilter.allCases) { filter in
-                        filterChip(
-                            filter.rawValue,
-                            symbol: filter.symbol,
-                            isSelected: store.libraryQuickFilter == filter
-                        ) {
-                            withAnimation(TempoTheme.Motion.quick) {
-                                store.toggleLibraryQuickFilter(filter)
-                            }
-                        }
-                    }
-
-                    ForEach(activeDifficulties) { difficulty in
-                        filterChip(
-                            difficulty.rawValue,
-                            isSelected: true,
-                            isRemovable: true
-                        ) {
-                            withAnimation(TempoTheme.Motion.quick) {
-                                _ = store.selectedDifficulties.remove(difficulty.rawValue)
-                            }
-                        }
-                    }
-
-                    ForEach(activeGenres) { genre in
-                        filterChip(
-                            genre.rawValue,
-                            isSelected: true,
-                            isRemovable: true
-                        ) {
-                            withAnimation(TempoTheme.Motion.quick) {
-                                _ = store.selectedGenres.remove(genre.rawValue)
-                            }
-                        }
-                    }
+        Button {
+            loadDraftFilters()
+            isFilterPopoverPresented.toggle()
+        } label: {
+            HStack(spacing: TempoTheme.Spacing.small) {
+                Image(systemName: "slider.horizontal.3")
+                Text("Filters")
+                if activeFilterCount > 0 {
+                    Text(activeFilterCount, format: .number)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 18, minHeight: 18)
+                        .background(Color.tempoBlue, in: Circle())
                 }
             }
-            Spacer(minLength: 0)
-
-            Button {
-                loadDraftFilters()
-                isFilterPopoverPresented.toggle()
-            } label: {
-                HStack(spacing: TempoTheme.Spacing.small) {
-                    Image(systemName: "slider.horizontal.3")
-                    Text("Filters")
-                    if activeFilterCount > 0 {
-                        Text(activeFilterCount, format: .number)
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.white)
-                            .frame(minWidth: 18, minHeight: 18)
-                            .background(Color.tempoBlue, in: Circle())
-                    }
-                }
-            }
-            .tempoBorderedButton()
-            .popover(
-                isPresented: $isFilterPopoverPresented,
-                arrowEdge: .top
-            ) {
-                filterPopover
-            }
+        }
+        .tempoBorderedButton()
+        .popover(
+            isPresented: $isFilterPopoverPresented,
+            arrowEdge: .top
+        ) {
+            filterPopover
         }
     }
 
@@ -325,18 +379,6 @@ struct LibraryFilterControls: View {
             + store.selectedGenres.count
     }
 
-    private var activeDifficulties: [PieceDifficulty] {
-        Array(PieceDifficulty.allCases).filter {
-            store.selectedDifficulties.contains($0.rawValue)
-        }
-    }
-
-    private var activeGenres: [PieceGenre] {
-        Array(PieceGenre.allCases).filter {
-            store.selectedGenres.contains($0.rawValue)
-        }
-    }
-
     private var draftFilterCount: Int {
         (draftQuickFilter == .all ? 0 : 1)
             + draftDifficulties.count
@@ -345,45 +387,6 @@ struct LibraryFilterControls: View {
 
     private var applyButtonTitle: String {
         draftFilterCount == 0 ? "Apply" : "Apply (\(draftFilterCount))"
-    }
-
-    private func filterChip(
-        _ title: String,
-        symbol: String? = nil,
-        isSelected: Bool,
-        isRemovable: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: TempoTheme.Spacing.small) {
-                if let symbol {
-                    Image(systemName: symbol)
-                }
-                Text(title)
-                if isRemovable {
-                    Image(systemName: "xmark")
-                        .font(.caption2.weight(.bold))
-                }
-            }
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(isSelected ? Color.tempoBlue : .primary)
-            .padding(.horizontal, TempoTheme.Spacing.medium)
-            .frame(height: TempoTheme.Layout.controlHeight)
-            .background(
-                isSelected ? Color.tempoBlue.opacity(0.12) : Color.clear,
-                in: RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: TempoTheme.Radius.control)
-                    .stroke(
-                        isSelected ? Color.tempoBlue.opacity(0.65) : Color.tempoControlBorder,
-                        lineWidth: 1
-                    )
-            }
-            .contentShape(RoundedRectangle(cornerRadius: TempoTheme.Radius.control))
-        }
-        .buttonStyle(.plain)
-        .help(isRemovable ? "Remove \(title) filter" : "Show \(title.lowercased()) scores")
     }
 
     private func filterSection<Content: View>(
@@ -472,7 +475,10 @@ private struct LibraryControlsPreview: View {
                 label: \.rawValue
             )
             LibrarySortPicker(selection: $sort)
-            LibraryFilterControls(store: PreviewFixtures.store())
+            HStack(spacing: TempoTheme.Spacing.medium) {
+                LibraryFilterTags(store: PreviewFixtures.store())
+                LibraryFilterMenuButton(store: PreviewFixtures.store())
+            }
             ScoreArtworkView(
                 title: PreviewFixtures.piece.title,
                 composer: PreviewFixtures.piece.composer,

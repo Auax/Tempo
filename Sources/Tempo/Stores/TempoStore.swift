@@ -423,7 +423,7 @@ final class TempoStore {
         if let previewImagePath = piece.previewImagePath,
            URL(fileURLWithPath: previewImagePath)
             .lastPathComponent
-            .hasSuffix("-preview-v4.png"),
+            .hasSuffix("-preview-v5.png"),
            let image = NSImage(contentsOfFile: previewImagePath) {
             return image
         }

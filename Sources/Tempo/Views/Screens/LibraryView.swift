@@ -15,7 +15,6 @@ struct LibraryView: View {
             }
             .padding(.horizontal, libraryContentPadding)
             .padding(.top, libraryContentPadding)
-            .padding(.bottom, TempoTheme.Spacing.large)
 
             Group {
                 switch store.librarySection {
@@ -34,13 +33,19 @@ struct LibraryView: View {
     }
 
     private var libraryHeader: some View {
-        VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
-            Text("Library")
-                .font(.largeTitle.weight(.semibold))
-            Text("Manage and organize your scores")
-                .foregroundStyle(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: TempoTheme.Spacing.xSmall) {
+                Text("Library")
+                    .font(.largeTitle.weight(.semibold))
+                // Text("Manage and organize your scores")
+                //     .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+
+            headerActions
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var sectionBar: some View {
@@ -82,19 +87,19 @@ struct LibraryView: View {
                 }
             }
             .fixedSize(horizontal: true, vertical: false)
-
+            
             Spacer(minLength: 0)
 
-            sectionBarActions
+            LibraryFilterMenuButton(store: store)
         }
         .padding(.bottom, TempoTheme.Spacing.medium)
     }
 
-    private var sectionBarActions: some View {
+    private var headerActions: some View {
         HStack(spacing: TempoTheme.Spacing.medium) {
             if store.librarySection == .allScores {
                 TempoSearchField(
-                    prompt: "Search by title, composer, genre, or difficulty",
+                    prompt: "Search a score",
                     text: $store.searchText
                 )
                 .frame(maxWidth: TempoTheme.Layout.librarySearchMaxWidth)
@@ -127,14 +132,16 @@ struct LibraryView: View {
     }
 
     private var allScoresView: some View {
-        VStack(spacing: 0) {
-            LibraryFilterControls(store: store)
-                .padding(.horizontal, TempoTheme.Spacing.xLarge)
-                .padding(.top, TempoTheme.Spacing.small)
+        // VStack(spacing: 0) {
+            // HStack(spacing: TempoTheme.Spacing.medium) {
+            //     LibraryFilterTags(store: store)
+            // }
+            // .padding(.horizontal, TempoTheme.Spacing.xLarge)
+            // .padding(.top, TempoTheme.Spacing.small)
 
-            scoreResults(for: store.filteredPieces)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        scoreResults(for: store.filteredPieces)
+        // }
+        // .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -167,7 +174,7 @@ struct LibraryView: View {
                 GridItem(
                     .adaptive(
                         minimum: TempoTheme.Layout.libraryScoreCardMin,
-                        maximum: TempoTheme.Layout.libraryScoreCardMax
+                        maximum: TempoTheme.Layout.libraryScoreCardMin
                     ),
                     spacing: TempoTheme.Spacing.large
                 )
@@ -177,6 +184,7 @@ struct LibraryView: View {
         ) {
             ForEach(pieces) { piece in
                 SheetMusicCard(piece: piece, store: store)
+                    .frame(width: TempoTheme.Layout.libraryScoreCardMin)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
